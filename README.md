@@ -1,6 +1,6 @@
 # Domain Name Generator
 
-A Python script to generate and score domain names for information retrieval/AI companies. Generates names based on themes (science, computer science, machine learning, math, information retrieval) and checks domain availability.
+A Python script to generate and score domain names for information retrieval/AI companies. Generates names based on themes (science, computer science, machine learning, math, information retrieval, scale) and checks domain availability. Supports multiple theme selection and cross-theme name generation.
 
 ## Requirements
 
@@ -16,38 +16,49 @@ A Python script to generate and score domain names for information retrieval/AI 
 Run the themed name generator:
 
 ```bash
-python3 generate_themed_names.py
+# Option 1: Use the runner script (recommended)
+python3 run.py
+
+# Option 2: Run directly from src directory
+python3 src/generate_themed_names.py
 ```
 
 The script will **interactively prompt you** for:
 
-1. **Theme Selection**: Choose from 5 themes:
-   - science
-   - computer_science
-   - machine_learning
-   - math
-   - information_retrieval
+1. **Theme Selection**: Choose from 6 themes (can select multiple):
+   - 1. science
+   - 2. computer_science
+   - 3. machine_learning
+   - 4. math
+   - 5. information_retrieval
+   - 6. scale (big, large, deep, vast, magnitude)
+   
+   You can select multiple themes by entering comma-separated numbers (e.g., `1,3,6`). When multiple themes are selected, the script generates names for each theme individually AND creates cross-theme combinations (e.g., combining "math" and "scale" words).
 
-2. **Number of Names to Generate**: How many names to generate (recommended: 500-2000)
-   - More names = more variety, but takes longer to process
+2. **Number of Names to Generate**: How many names to generate (recommended: 10,000-100,000, max: 500,000)
+   - More names = more variety
+   - Generation, scoring, and sorting are fast - this won't take long
+   - When multiple themes are selected, names are divided across themes plus cross-theme combinations
 
 2b. **Name Length Constraints**: Minimum and maximum character length
    - Enter minimum length (default: 4)
    - Enter maximum length (default: 8)
    - Recommended: 4-8 characters (shorter is better for domains)
 
-3. **Domain Availability Check** (optional): Check if domains are available using whois
-   - How many available domains to find before stopping (recommended: 10-100)
-   - Note: Checking takes ~1 second per domain (~2 minutes for 100 domains)
-   - **Cache**: The script automatically caches taken domains in `taken_domains_cache.txt`
-     - Domains found to be taken are saved and skipped in future runs
+3. **Domain Availability Check** (default: yes): Check if domains are available using whois
+   - Select TLD(s): .ai only, .com only, or both
+   - How many available domains to find before stopping (recommended: 50-150, default: 100)
+   - Note: Checking takes ~1 second per domain
+   - **Cache**: The script automatically caches taken and available domains in `cache/`
+     - Domains found to be taken/available are saved and skipped in future runs
+     - Cache is updated incrementally (saved even if script is interrupted)
      - This speeds up subsequent checks significantly
 
 The script will:
-- Generate names based on the selected theme
+- Generate names based on the selected theme(s)
 - Score each name across multiple dimensions
-- Output results to `themed_names_{theme}.txt`
-- Optionally check domain availability and save to `available_{theme}_domains.txt`
+- Output results to `output/themed_names_{theme}_{num}.txt`
+- Optionally check domain availability and save to `output/available_{theme}_{tld}_{num}_domains.txt`
 
 ## Output Format
 
@@ -64,20 +75,38 @@ The output file includes:
 - **Tech**: Technical depth (sophistication)
 - **Broad**: Broader appeal (universal accessibility)
 
-## Files
+## Project Structure
+
+```
+name_generator/
+├── src/                          # Source code
+│   ├── generate_themed_names.py  # Main script for themed name generation
+│   ├── generate_domain_names.py  # Core scoring functions and utilities
+│   └── add_definitions.py        # Definitions for common domain names
+├── cache/                        # Cache files (auto-created)
+│   ├── taken_domains_cache.txt   # Cache of known taken domains
+│   └── available_domains_cache.txt  # Cache of known available domains
+├── output/                       # Output files (auto-created)
+│   ├── themed_names_{theme}_{num}.txt  # All generated names with scores
+│   └── available_{theme}_{tld}_{num}_domains.txt  # Available domains
+├── run.py                        # Runner script (recommended way to run)
+├── README.md                     # This file
+└── .gitignore                    # Git ignore rules
+```
 
 **Essential files (required to run):**
-- `generate_themed_names.py` - Main script for themed name generation
-- `generate_domain_names.py` - Core scoring functions and utilities
-- `add_definitions.py` - Definitions for common domain names
+- `src/generate_themed_names.py` - Main script for themed name generation
+- `src/generate_domain_names.py` - Core scoring functions and utilities
+- `src/add_definitions.py` - Definitions for common domain names
 
 **Optional files:**
-- `taken_domains_cache.txt` - Cache of known taken domains (speeds up future checks)
+- `cache/taken_domains_cache.txt` - Cache of known taken domains (speeds up future checks)
+- `cache/available_domains_cache.txt` - Cache of known available domains
 - `README.md` - This file
 
 **Output files (generated when you run the script):**
-- `themed_names_{theme}.txt` - All generated names with scores
-- `available_{theme}_domains.txt` - Available domains with scores and definitions
+- `output/themed_names_{theme}_{num}.txt` - All generated names with scores
+- `output/available_{theme}_{tld}_{num}_domains.txt` - Available domains with scores and definitions
 
 ## Installation
 
@@ -90,11 +119,11 @@ That's it! No additional dependencies needed.
 ## Example Usage
 
 ```bash
-python3 generate_themed_names.py
+python3 run.py
 ```
 
 Then follow the interactive prompts to:
-1. Select a theme
-2. Choose how many names to generate
+1. Select theme(s) (1-6, comma-separated for multiple)
+2. Choose how many names to generate (recommended: 10,000-100,000)
 3. Set name length constraints
-4. Optionally check domain availability
+4. Optionally check domain availability and select TLD(s) (.ai, .com, or both)

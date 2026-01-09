@@ -6,7 +6,13 @@ Prioritizes English words relevant to the selected theme.
 
 import random
 import sys
-sys.path.insert(0, '.')
+import os
+import re
+from datetime import datetime
+
+# Add src directory to path for imports
+src_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, src_dir)
 
 from generate_domain_names import (
     score_name,
@@ -132,6 +138,30 @@ THEME_WORDS = {
         'relevance', 'ranking', 'scoring', 'weighting', 'boosting', 'penalizing',
         'rerank', 'refine', 'optimize', 'tune', 'calibrate', 'adjust',
         'retrieval', 'retrieval', 'retrieval', 'retrieval', 'retrieval',
+    ],
+    
+    'scale': [
+        # Size and magnitude
+        'big', 'large', 'vast', 'huge', 'massive', 'immense', 'enormous', 'giant',
+        'mega', 'macro', 'grand', 'major', 'max', 'peak', 'summit', 'apex', 'zenith',
+        'titan', 'colossal', 'towering', 'monumental', 'mighty', 'powerful',
+        # Depth
+        'deep', 'profound', 'bottomless', 'abyss', 'core', 'center', 'heart', 'essence',
+        'root', 'base', 'foundation', 'bedrock', 'depths',
+        # Breadth and expanse
+        'wide', 'broad', 'expansive', 'extensive', 'comprehensive', 'full', 'complete',
+        'span', 'reach', 'range', 'scope', 'extent', 'scale', 'magnitude',
+        # Height and elevation
+        'high', 'tall', 'elevated', 'lofty', 'towering', 'sky', 'cloud', 'peak',
+        'summit', 'pinnacle', 'crest', 'ridge', 'height',
+        # Infinity and boundlessness
+        'infinite', 'endless', 'boundless', 'limitless', 'eternal', 'perpetual',
+        'unlimited', 'unbounded', 'immeasurable', 'incalculable',
+        # Volume and capacity
+        'volume', 'capacity', 'bulk', 'mass', 'weight', 'density', 'magnitude',
+        # Scale-related concepts
+        'scale', 'magnitude', 'scope', 'range', 'span', 'reach', 'extent', 'breadth',
+        'width', 'depth', 'height', 'length', 'dimension', 'measure',
     ],
 }
 
@@ -321,6 +351,16 @@ def score_theme_relevance(name: str, theme: str) -> float:
             if pattern in name_lower:
                 score += 20  # Lower boost
     
+    elif theme_lower == 'scale':
+        # Scale theme patterns (big, large, deep, vast, magnitude)
+        scale_patterns = ['big', 'large', 'vast', 'huge', 'massive', 'deep', 'wide', 'broad',
+                         'high', 'tall', 'peak', 'summit', 'apex', 'zenith', 'core', 'base',
+                         'infinite', 'endless', 'boundless', 'limitless', 'scale', 'magnitude',
+                         'scope', 'range', 'span', 'extent', 'volume', 'capacity', 'mega', 'macro']
+        for pattern in scale_patterns:
+            if pattern in name_lower:
+                score += 30
+    
     return max(0, score)  # Don't return negative scores
 
 def create_word_variation(word: str) -> str:
@@ -338,6 +378,48 @@ def create_word_variation(word: str) -> str:
                 variant = word[:pos] + random.choice(other_vowels) + word[pos+1:]
                 return variant
     return word
+
+def get_next_file_number(base_pattern: str, suffix: str = '.txt', directory: str = '.') -> int:
+    """
+    Get the next number for a file pattern.
+    Example: base_pattern = 'themed_names_math_', suffix = '.txt' 
+             -> finds themed_names_math_1.txt, themed_names_math_2.txt, etc.
+    Example: base_pattern = 'available_math_ai_', suffix = '_domains.txt'
+             -> finds available_math_ai_1_domains.txt, available_math_ai_2_domains.txt, etc.
+    Returns the next available number (1 if no files exist).
+    """
+    # Get project root (parent of src directory)
+    if directory == '.':
+        # If relative path, resolve to project root
+        src_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(src_dir)
+        directory = os.path.join(project_root, directory) if directory != '.' else project_root
+    elif not os.path.isabs(directory):
+        # If relative path, make it relative to project root
+        src_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(src_dir)
+        directory = os.path.join(project_root, directory)
+    
+    if not os.path.exists(directory):
+        return 1
+    
+    # Find all files matching the pattern
+    # Escape the base pattern and suffix, but allow digits between them
+    escaped_base = re.escape(base_pattern)
+    escaped_suffix = re.escape(suffix)
+    pattern = re.compile(rf'^{escaped_base}(\d+){escaped_suffix}$')
+    max_num = 0
+    
+    try:
+        for filename in os.listdir(directory):
+            match = pattern.match(filename)
+            if match:
+                num = int(match.group(1))
+                max_num = max(max_num, num)
+    except OSError:
+        return 1
+    
+    return max_num + 1
 
 def generate_themed_names(count: int = 500, theme: str = 'information_retrieval', min_length: int = 4, max_length: int = 8) -> list:
     """Generate names prioritizing words relevant to the selected theme."""
@@ -389,14 +471,120 @@ def generate_themed_names(count: int = 500, theme: str = 'information_retrieval'
     name_list = list(names)
     return name_list[:count]
 
+def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, max_length: int = 8) -> list:
+    """Generate names by combining words from multiple themes."""
+    names = set()
+    
+    # Get words from all themes
+    all_theme_words = {}
+    for theme in themes:
+        theme_words = get_theme_words(theme)
+        all_theme_words[theme] = [w for w in theme_words if min_length <= len(w) <= max_length]
+    
+    # Method 1: Combine short words from different themes
+    print("  - Combining words from different themes...")
+    short_words_by_theme = {}
+    for theme in themes:
+        short_words_by_theme[theme] = [w for w in all_theme_words[theme] if 3 <= len(w) <= 5]
+    
+    for _ in range(count // 2):
+        # Pick words from 2 different themes
+        if len(themes) >= 2:
+            theme1 = random.choice(themes)
+            theme2 = random.choice([t for t in themes if t != theme1])
+            
+            if short_words_by_theme[theme1] and short_words_by_theme[theme2]:
+                word1 = random.choice(short_words_by_theme[theme1])
+                word2 = random.choice(short_words_by_theme[theme2])
+                
+                # Try both orders
+                combined1 = word1 + word2
+                combined2 = word2 + word1
+                
+                if min_length <= len(combined1) <= max_length:
+                    names.add(combined1.lower())
+                if min_length <= len(combined2) <= max_length:
+                    names.add(combined2.lower())
+    
+    # Method 2: Combine theme word + suffix from another theme
+    print("  - Combining theme words with suffixes from other themes...")
+    for theme in themes:
+        other_themes = [t for t in themes if t != theme]
+        if not other_themes:
+            continue
+            
+        base_words = [w for w in all_theme_words[theme] if 3 <= len(w) <= max_length - 2]
+        suffix_words = [w for w in all_theme_words[random.choice(other_themes)] if 2 <= len(w) <= 3]
+        
+        for _ in range(count // (len(themes) * 4)):
+            if base_words and suffix_words:
+                base = random.choice(base_words)
+                suffix = random.choice(suffix_words)
+                combined = base + suffix
+                if min_length <= len(combined) <= max_length and not has_awkward_vowel_ending(combined):
+                    names.add(combined.lower())
+    
+    # Method 3: Three-way combinations (if 3+ themes)
+    if len(themes) >= 3:
+        print("  - Creating three-way theme combinations...")
+        for _ in range(count // 4):
+            selected_themes = random.sample(themes, min(3, len(themes)))
+            words = []
+            for theme in selected_themes:
+                short_words = [w for w in all_theme_words[theme] if 2 <= len(w) <= 4]
+                if short_words:
+                    words.append(random.choice(short_words))
+            
+            if len(words) >= 2:
+                combined = ''.join(words)
+                if min_length <= len(combined) <= max_length and not has_awkward_vowel_ending(combined):
+                    names.add(combined.lower())
+    
+    # Method 4: Add suffixes to cross-theme combinations
+    print("  - Adding suffixes to cross-theme combinations...")
+    suffixes = ['ly', 'er', 'ed', 'ing', 'ive', 'al', 'ic']
+    for theme in themes:
+        other_themes = [t for t in themes if t != theme]
+        if not other_themes:
+            continue
+            
+        base_words = [w for w in all_theme_words[theme] if 3 <= len(w) <= max_length - 3]
+        for other_theme in other_themes:
+            suffix_words = [w for w in all_theme_words[other_theme] if 2 <= len(w) <= 3]
+            
+            for base in base_words[:min(20, len(base_words))]:  # Limit to avoid too many combinations
+                for suffix_word in suffix_words[:min(10, len(suffix_words))]:
+                    combined = base + suffix_word
+                    if min_length <= len(combined) <= max_length - 2:
+                        for suffix in suffixes:
+                            final = combined + suffix
+                            if min_length <= len(final) <= max_length and not has_awkward_vowel_ending(final):
+                                names.add(final.lower())
+    
+    # Convert to list and limit
+    name_list = list(names)
+    return name_list[:count]
+
 def main():
     """Generate and score themed names."""
     print("=" * 80)
     print("THEMED DOMAIN NAME GENERATOR")
     print("=" * 80)
     
-    # Get theme from user
-    print("\nSTEP 1: Select Theme")
+    # Create output directory if it doesn't exist (in project root, not src/)
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(src_dir)
+    output_dir = os.path.join(project_root, 'output')
+    if not os.path.exists(output_dir):
+        try:
+            os.makedirs(output_dir)
+            print(f"📁 Created output directory: {output_dir}/")
+        except Exception as e:
+            print(f"  ⚠️  Could not create output directory: {e}")
+            output_dir = project_root  # Fallback to project root
+    
+    # Get theme(s) from user
+    print("\nSTEP 1: Select Theme(s)")
     print("-" * 80)
     print("Available themes:")
     print("  1. science")
@@ -404,8 +592,9 @@ def main():
     print("  3. machine_learning")
     print("  4. math")
     print("  5. information_retrieval")
+    print("  6. scale (big, large, deep, vast, magnitude)")
     
-    theme_choice = input("\nSelect theme (1-5, or enter theme name): ").strip()
+    theme_choice = input("\nSelect theme(s) (1-6, comma-separated for multiple): ").strip()
     
     theme_map = {
         '1': 'science',
@@ -413,41 +602,73 @@ def main():
         '3': 'machine_learning',
         '4': 'math',
         '5': 'information_retrieval',
+        '6': 'scale',
     }
     
-    theme = theme_map.get(theme_choice, theme_choice.lower())
+    valid_themes = ['science', 'computer_science', 'machine_learning', 'math', 'information_retrieval', 'scale']
     
-    if theme not in THEME_WORDS and theme not in ['science', 'computer_science', 'machine_learning', 'math', 'information_retrieval']:
-        print(f"Unknown theme: {theme}. Using 'information_retrieval' as default.")
-        theme = 'information_retrieval'
+    # Parse multiple themes (only accept numbers)
+    themes = []
+    if ',' in theme_choice:
+        # Comma-separated: "1,3,4"
+        theme_choices = [t.strip() for t in theme_choice.split(',')]
+        for tc in theme_choices:
+            if tc in theme_map:
+                themes.append(theme_map[tc])
+            else:
+                print(f"  ⚠️  Invalid theme number: {tc}. Skipping.")
+    elif ' ' in theme_choice:
+        # Space-separated numbers: "1 3 4"
+        theme_choices = theme_choice.split()
+        for tc in theme_choices:
+            tc_clean = tc.strip()
+            if tc_clean in theme_map:
+                themes.append(theme_map[tc_clean])
+            else:
+                print(f"  ⚠️  Invalid theme number: {tc_clean}. Skipping.")
+    else:
+        # Single theme
+        if theme_choice in theme_map:
+            themes = [theme_map[theme_choice]]
+        else:
+            print(f"  ⚠️  Invalid theme number: {theme_choice}. Using 'information_retrieval' as default.")
+            themes = ['information_retrieval']
     
-    print(f"\n✓ Selected theme: {theme}")
+    if not themes:
+        print("  ⚠️  No valid themes selected. Using 'information_retrieval' as default.")
+        themes = ['information_retrieval']
+    
+    if len(themes) == 1:
+        print(f"\n✓ Selected theme: {themes[0]}")
+    else:
+        print(f"\n✓ Selected {len(themes)} themes: {', '.join(themes)}")
     
     # Get number of names to generate
     print("\nSTEP 2: Number of Names to Generate")
     print("-" * 80)
     print("How many names should we generate?")
-    print("  (More names = more variety, but takes longer to process)")
-    print("  Recommended: 500-2000")
+    print("  (More names = more variety. Scoring and sorting are fast!)")
+    print("  Recommended: 10,000-100,000 for best results")
     
     while True:
         try:
-            num_names_input = input("\nEnter number of names to generate (default: 1000): ").strip()
+            num_names_input = input("\nEnter number of names to generate (default: 10000): ").strip()
             if not num_names_input:
-                num_names = 1000
+                num_names = 10000
             else:
                 num_names = int(num_names_input)
                 if num_names < 10:
                     print("  ⚠️  Please enter at least 10 names")
                     continue
-                if num_names > 10000:
-                    print("  ⚠️  That's a lot! Consider a smaller number (max 10000)")
+                if num_names > 500000:
+                    print("  ⚠️  That's a lot! Consider a smaller number (max 500000)")
                     continue
             break
         except ValueError:
             print("  ⚠️  Please enter a valid number")
     
     print(f"\n✓ Will generate up to {num_names} names")
+    print("  (Generation, scoring, and sorting are fast - this won't take long)")
     
     # Get name length constraints
     print("\nSTEP 2b: Name Length Constraints")
@@ -491,9 +712,36 @@ def main():
     
     print(f"\n✓ Name length: {min_length}-{max_length} characters")
     
-    # Generate names
-    names = generate_themed_names(num_names, theme, min_length, max_length)
-    print(f"\n✓ Generated {len(names)} unique names")
+    # Generate names for all selected themes
+    all_names = set()
+    
+    if len(themes) > 1:
+        # For multiple themes: generate separately AND generate cross-theme combinations
+        names_per_theme = (num_names // 2) // len(themes)  # Half for individual themes
+        cross_theme_count = num_names // 2  # Half for cross-theme combinations
+        
+        # Generate names for each theme individually
+        for theme in themes:
+            print(f"\nGenerating names for theme: {theme}...")
+            theme_names = generate_themed_names(names_per_theme, theme, min_length, max_length)
+            all_names.update(theme_names)
+            print(f"  ✓ Generated {len(theme_names)} names for {theme}")
+        
+        # Generate cross-theme combinations (combining words from different themes)
+        print(f"\nGenerating cross-theme combinations (combining words from multiple themes)...")
+        cross_theme_names = generate_cross_theme_names(cross_theme_count, themes, min_length, max_length)
+        all_names.update(cross_theme_names)
+        print(f"  ✓ Generated {len(cross_theme_names)} cross-theme combination names")
+    else:
+        # Single theme: just generate normally
+        names_per_theme = num_names
+        print(f"\nGenerating names for theme: {themes[0]}...")
+        theme_names = generate_themed_names(names_per_theme, themes[0], min_length, max_length)
+        all_names.update(theme_names)
+        print(f"  ✓ Generated {len(theme_names)} names for {themes[0]}")
+    
+    names = list(all_names)
+    print(f"\n✓ Generated {len(names)} unique names total")
     
     # Score them
     print("Scoring names (theme relevance + English word score)...")
@@ -516,7 +764,10 @@ def main():
         if is_easy_to_spell(name, prefs):
             score = score_name(name, prefs)
             english_score = score_english_word_like(name)
-            theme_score = score_theme_relevance(name, theme)
+            
+            # Score against all selected themes and take the maximum
+            theme_scores = [score_theme_relevance(name, theme) for theme in themes]
+            theme_score = max(theme_scores)  # Use the best matching theme score
             
             # Combine scores (theme relevance is important)
             combined_score = score + (theme_score * 0.3)  # Weight theme relevance
@@ -549,7 +800,16 @@ def main():
     max_broader = 100
     
     # Save to file with normalized scores (0-100, integers)
-    output_file = f'themed_names_{theme}.txt'
+    # Add number to prevent overwriting previous runs (1, 2, 3, etc.)
+    if len(themes) == 1:
+        theme_str = themes[0]
+        base_pattern = f'themed_names_{theme_str}_'
+    else:
+        # For multiple themes, create a combined name
+        theme_str = '_'.join(themes)
+        base_pattern = f'themed_names_{theme_str}_'
+    file_num = get_next_file_number(base_pattern, directory=output_dir)
+    output_file = os.path.join(output_dir, f'{base_pattern}{file_num}.txt')
     with open(output_file, 'w') as f:
         f.write(f"Themed Domain Name Suggestions: {theme}\n")
         f.write("Prioritizing theme-relevant English words\n")
@@ -600,6 +860,7 @@ def main():
             broader_norm = int((broader / max_broader) * 100) if max_broader > 0 else 0
             
             theme_star = "⭐" if theme_score >= 50 else " "
+            # Show .ai by default in the generated names file (before TLD selection)
             f.write(f"{i:3d}. {theme_star} {name}.ai\n")
             f.write(f"     Scores: Theme:{theme_norm:3d} | English:{english_norm:3d} | ")
             f.write(f"Base:{base_norm:3d} | Total:{total_norm:3d}\n")
@@ -611,6 +872,7 @@ def main():
     print("\nTop 30 names (prioritizing theme relevance):")
     for i, (name, total_score, english_score, theme_score) in enumerate(scored_names[:30], 1):
         theme_star = "⭐" if theme_score >= 50 else " "
+        # Show .ai by default in preview (before TLD selection)
         print(f"  {i:2d}. {theme_star} {name}.ai (Total: {total_score:.1f}, Theme: {theme_score:.1f})")
     
     # Optional: Check domain availability
@@ -621,18 +883,35 @@ def main():
     print("  Note: This can take a while (~1 second per domain)")
     print("  Example: Checking 100 domains takes ~2 minutes")
     
-    check_availability = input("\nCheck domain availability? (yes/no, default: no): ").strip().lower()
+    check_availability = input("\nCheck domain availability? (yes/no, default: yes): ").strip().lower() or "yes"
     
     if check_availability in ['yes', 'y']:
+        # Get TLD selection
+        print("\nWhich TLD(s) would you like to check?")
+        print("  [1] .ai only")
+        print("  [2] .com only")
+        print("  [3] Both .ai and .com")
+        
+        tld_choice = input("\nSelect TLD(s) (1-3, default: 1): ").strip() or "1"
+        
+        if tld_choice == "2":
+            tlds = ['.com']
+        elif tld_choice == "3":
+            tlds = ['.ai', '.com']
+        else:
+            tlds = ['.ai']
+        
+        print(f"\n✓ Will check domains for: {', '.join(tlds)}")
         print("\nHow many available domains should we find before stopping?")
         print("  (We'll check names in priority order until we find this many)")
-        print("  Recommended: 10-100")
+        print("  (Domain checking is slow: ~1 second per domain)")
+        print("  Recommended: 50-150")
         
         while True:
             try:
-                num_available_input = input("\nEnter number of available domains to find (default: 50): ").strip()
+                num_available_input = input("\nEnter number of available domains to find (default: 100): ").strip()
                 if not num_available_input:
-                    num_available = 50
+                    num_available = 100
                 else:
                     num_available = int(num_available_input)
                     if num_available < 1:
@@ -640,23 +919,37 @@ def main():
                         continue
                     if num_available > 500:
                         print("  ⚠️  That's a lot! Consider a smaller number (max 500)")
+                        print("  (Each domain check takes ~1 second)")
                         continue
                 break
             except ValueError:
                 print("  ⚠️  Please enter a valid number")
         
         print(f"\n✓ Will check domains until we find {num_available} available ones")
+        estimated_time = num_available * 10  # Rough estimate: check ~10x to find available ones
         print(f"  (This may check up to {min(len(scored_names), num_available * 10)} domains)")
+        print(f"  (Estimated time: ~{estimated_time // 60} minutes)")
         print("\nStarting domain availability check...")
         print("  (This may take a while - checking ~1 domain per second)")
         
         # Import whois function
         from generate_domain_names import run_whois
         import time
-        import os
+        
+        # Create cache directory if it doesn't exist (in project root, not src/)
+        src_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(src_dir)
+        cache_dir = os.path.join(project_root, 'cache')
+        if not os.path.exists(cache_dir):
+            try:
+                os.makedirs(cache_dir)
+                print(f"  📁 Created cache directory: {cache_dir}/")
+            except Exception as e:
+                print(f"  ⚠️  Could not create cache directory: {e}")
+                cache_dir = project_root  # Fallback to project root
         
         # Load cache of taken domains
-        cache_file = 'taken_domains_cache.txt'
+        cache_file = os.path.join(cache_dir, 'taken_domains_cache.txt')
         taken_domains_cache = set()
         
         if os.path.exists(cache_file):
@@ -667,11 +960,38 @@ def main():
             except Exception as e:
                 print(f"  ⚠️  Could not load cache: {e}")
         
+        # Load cache of available domains (to skip re-checking)
+        available_cache_file = os.path.join(cache_dir, 'available_domains_cache.txt')
+        available_domains_cache = set()
+        
+        if os.path.exists(available_cache_file):
+            try:
+                with open(available_cache_file, 'r') as f:
+                    available_domains_cache = {line.strip().lower() for line in f if line.strip()}
+                print(f"  📋 Loaded {len(available_domains_cache)} available domains from cache")
+            except Exception as e:
+                print(f"  ⚠️  Could not load available domains cache: {e}")
+        
         available_domains = []
         checked = 0
         skipped = 0
+        skipped_available = 0
         newly_taken = []
+        newly_available = []
         max_to_check = min(len(scored_names), num_available * 10)  # Check up to 10x the target
+        
+        # Open cache files for incremental writing (so progress is saved if script is interrupted)
+        cache_file_handle = None
+        try:
+            cache_file_handle = open(cache_file, 'a')
+        except Exception as e:
+            print(f"  ⚠️  Could not open cache file for writing: {e}")
+        
+        available_cache_file_handle = None
+        try:
+            available_cache_file_handle = open(available_cache_file, 'a')
+        except Exception as e:
+            print(f"  ⚠️  Could not open available domains cache file for writing: {e}")
         
         # Create a lookup for scores by name
         name_to_scores = {}
@@ -691,48 +1011,105 @@ def main():
                 print(f"\n  ⚠️  Reached maximum check limit ({max_to_check}). Found {len(available_domains)} available domains.")
                 break
             
-            domain = f"{name}.ai"
-            domain_lower = domain.lower()
-            
-            # Check cache first
-            if domain_lower in taken_domains_cache:
-                skipped += 1
-                print(f"  [{checked + skipped}/{max_to_check}] {domain}... (cached - taken)")
-                continue
-            
-            checked += 1
-            print(f"  [{checked}/{max_to_check}] Checking {domain}...", end=' ', flush=True)
-            
-            is_available, status = run_whois(domain)
-            
-            if is_available:
-                # Get scores for this name
-                scores = name_to_scores.get(name, {})
-                available_domains.append((name, domain, status, scores))
-                print(f"✓ AVAILABLE ({len(available_domains)}/{num_available})")
-            elif is_available is False:
-                # Add to cache
-                taken_domains_cache.add(domain_lower)
-                newly_taken.append(domain_lower)
-                print("✗ Taken")
-            else:
-                print(f"? {status}")
-            
-            # Rate limiting
-            time.sleep(1)
+            # Check each TLD for this name
+            for tld in tlds:
+                if len(available_domains) >= num_available:
+                    break
+                if checked >= max_to_check:
+                    break
+                
+                domain = f"{name}{tld}"
+                domain_lower = domain.lower()
+                
+                # Check cache first (taken domains)
+                if domain_lower in taken_domains_cache:
+                    skipped += 1
+                    print(f"  [{checked + skipped}/{max_to_check}] {domain}... (cached - taken)")
+                    continue
+                
+                # Check cache for available domains
+                if domain_lower in available_domains_cache:
+                    skipped_available += 1
+                    # Get scores for this name
+                    scores = name_to_scores.get(name, {})
+                    available_domains.append((name, domain, "Available (from cache)", scores))
+                    print(f"  [{checked + skipped + skipped_available}/{max_to_check}] {domain}... (cached - available)")
+                    if len(available_domains) >= num_available:
+                        break
+                    continue
+                
+                checked += 1
+                print(f"  [{checked}/{max_to_check}] Checking {domain}...", end=' ', flush=True)
+                
+                is_available, status = run_whois(domain)
+                
+                if is_available:
+                    # Get scores for this name
+                    scores = name_to_scores.get(name, {})
+                    available_domains.append((name, domain, status, scores))
+                    # Add to available cache (in-memory and file)
+                    available_domains_cache.add(domain_lower)
+                    newly_available.append(domain_lower)
+                    # Write to cache file immediately so progress is saved if script is interrupted
+                    if available_cache_file_handle:
+                        try:
+                            available_cache_file_handle.write(f"{domain_lower}\n")
+                            available_cache_file_handle.flush()  # Ensure it's written to disk
+                        except Exception as e:
+                            print(f"\n  ⚠️  Could not write to available cache: {e}")
+                    print(f"✓ AVAILABLE ({len(available_domains)}/{num_available})")
+                elif is_available is False:
+                    # Add to cache (in-memory and file)
+                    taken_domains_cache.add(domain_lower)
+                    newly_taken.append(domain_lower)
+                    # Write to cache file immediately so progress is saved if script is interrupted
+                    if cache_file_handle:
+                        try:
+                            cache_file_handle.write(f"{domain_lower}\n")
+                            cache_file_handle.flush()  # Ensure it's written to disk
+                        except Exception as e:
+                            print(f"\n  ⚠️  Could not write to cache: {e}")
+                    print("✗ Taken")
+                else:
+                    print(f"? {status}")
+                
+                # Rate limiting
+                time.sleep(1)
         
-        # Save updated cache
-        if newly_taken:
+        # Close cache file handles
+        if cache_file_handle:
             try:
-                with open(cache_file, 'a') as f:
-                    for domain in newly_taken:
-                        f.write(f"{domain}\n")
-                print(f"\n  💾 Saved {len(newly_taken)} newly found taken domains to cache")
+                cache_file_handle.close()
+                if newly_taken:
+                    print(f"\n  💾 Saved {len(newly_taken)} newly found taken domains to cache")
             except Exception as e:
-                print(f"\n  ⚠️  Could not save cache: {e}")
+                print(f"\n  ⚠️  Error closing cache file: {e}")
+        
+        if available_cache_file_handle:
+            try:
+                available_cache_file_handle.close()
+                if newly_available:
+                    print(f"  💾 Saved {len(newly_available)} newly found available domains to cache")
+            except Exception as e:
+                print(f"\n  ⚠️  Error closing available cache file: {e}")
         
         if skipped > 0:
             print(f"\n  ⚡ Skipped {skipped} domains (already in cache as taken)")
+        if skipped_available > 0:
+            print(f"  ⚡ Skipped {skipped_available} domains (already in cache as available)")
+        
+        # Create filename with TLD info (define before checking available_domains)
+        # Add number to prevent overwriting previous runs (1, 2, 3, etc.)
+        tld_suffix = '_'.join([tld.replace('.', '') for tld in tlds])
+        if len(themes) == 1:
+            theme_str = themes[0]
+            base_pattern = f'available_{theme_str}_{tld_suffix}_'
+        else:
+            # For multiple themes, create a combined name
+            theme_str = '_'.join(themes)
+            base_pattern = f'available_{theme_str}_{tld_suffix}_'
+        file_num = get_next_file_number(base_pattern, suffix='_domains.txt', directory=output_dir)
+        available_file = os.path.join(output_dir, f'{base_pattern}{file_num}_domains.txt')
         
         # Save available domains with scores and definitions
         if available_domains:
@@ -764,10 +1141,12 @@ def main():
                     if name_lower in definitions:
                         return definitions[name_lower]
                     return ''
-            
-            available_file = f'available_{theme}_domains.txt'
             with open(available_file, 'w') as f:
-                f.write(f"Available {theme} domains (found {len(available_domains)})\n")
+                tld_display = ', '.join(tlds)
+                if len(themes) == 1:
+                    f.write(f"Available {themes[0]} domains ({tld_display}) - found {len(available_domains)}\n")
+                else:
+                    f.write(f"Available domains ({', '.join(themes)}) ({tld_display}) - found {len(available_domains)}\n")
                 f.write("=" * 80 + "\n\n")
                 f.write(f"Checked: {checked} domains\n")
                 if skipped > 0:
