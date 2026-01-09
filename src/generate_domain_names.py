@@ -482,71 +482,89 @@ def generate_from_pattern(pattern: str) -> str:
     return name
 
 
-def run_whois(domain: str) -> Tuple[bool, str]:
+def run_whois(domain: str, timeout: int = 7, retries: int = 1) -> Tuple[bool, str]:
     """
-    Run whois command for a domain.
+    Run whois command for a domain with timeout and retry logic.
     Returns (is_available, status_message)
+    
+    Args:
+        domain: Domain name to check
+        timeout: Timeout in seconds (default: 7, reduced from 10 for faster failure)
+        retries: Number of retry attempts (default: 1)
     """
-    try:
-        # Run whois command
-        result = subprocess.run(
-            ['whois', domain],
-            capture_output=True,
-            text=True,
-            timeout=10
-        )
-        
-        output = result.stdout.lower()
-        error_output = result.stderr.lower()
-        
-        # Check for common "not found" or "available" indicators
-        not_found_patterns = [
-            r'no match',
-            r'not found',
-            r'no entries found',
-            r'no data found',
-            r'status:\s*available',
-            r'domain status:\s*available',
-            r'no whois server',
-            r'query status:\s*noobjectfound',
-        ]
-        
-        # Check for "registered" indicators
-        registered_patterns = [
-            r'status:\s*active',
-            r'status:\s*registered',
-            r'domain status:\s*clienttransferprohibited',
-            r'domain status:\s*clienthold',
-            r'registrar:',
-            r'creation date:',
-            r'created:',
-            r'registered on:',
-        ]
-        
-        # Check output for availability indicators
-        for pattern in not_found_patterns:
-            if re.search(pattern, output):
-                return True, "Available (not found in whois)"
-        
-        # Check for registered indicators
-        for pattern in registered_patterns:
-            if re.search(pattern, output):
-                return False, "Registered"
-        
-        # If output is very short or contains specific error messages, might be available
-        if len(output.strip()) < 100:
-            if 'not found' in output or 'no match' in output:
-                return True, "Possibly available (minimal whois response)"
-        
-        # Default: assume registered if we can't determine
-        return False, "Unknown (check manually)"
-        
-    except subprocess.TimeoutExpired:
-        return None, "Timeout"
-    except FileNotFoundError:
-        return None, "whois command not found. Install whois: brew install whois (macOS)"
-    except Exception as e:
-        return None, f"Error: {str(e)}"
+    for attempt in range(retries + 1):
+        try:
+            # Run whois command with timeout
+            result = subprocess.run(
+                ['whois', domain],
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
+            
+            output = result.stdout.lower()
+            error_output = result.stderr.lower()
+            
+            # Check for common "not found" or "available" indicators
+            not_found_patterns = [
+                r'no match',
+                r'not found',
+                r'no entries found',
+                r'no data found',
+                r'status:\s*available',
+                r'domain status:\s*available',
+                r'no whois server',
+                r'query status:\s*noobjectfound',
+            ]
+            
+            # Check for "registered" indicators
+            registered_patterns = [
+                r'status:\s*active',
+                r'status:\s*registered',
+                r'domain status:\s*clienttransferprohibited',
+                r'domain status:\s*clienthold',
+                r'registrar:',
+                r'creation date:',
+                r'created:',
+                r'registered on:',
+            ]
+            
+            # Check output for availability indicators
+            for pattern in not_found_patterns:
+                if re.search(pattern, output):
+                    return True, "Available (not found in whois)"
+            
+            # Check for registered indicators
+            for pattern in registered_patterns:
+                if re.search(pattern, output):
+                    return False, "Registered"
+            
+            # If output is very short or contains specific error messages, might be available
+            if len(output.strip()) < 100:
+                if 'not found' in output or 'no match' in output:
+                    return True, "Possibly available (minimal whois response)"
+            
+            # Default: assume registered if we can't determine
+            return False, "Unknown (check manually)"
+            
+        except subprocess.TimeoutExpired:
+            # If this is not the last attempt, retry
+            if attempt < retries:
+                time.sleep(0.5)  # Brief delay before retry
+                continue
+            # Mark as timeout after all retries exhausted
+            return None, f"Timeout (after {timeout}s)"
+        except FileNotFoundError:
+            return None, "whois command not found. Install whois: brew install whois (macOS)"
+        except Exception as e:
+            # If this is not the last attempt, retry
+            if attempt < retries:
+                time.sleep(0.5)
+                continue
+            return None, f"Error: {str(e)}"
+    
+    # Should not reach here, but just in case
+    return None, "Timeout"
 
 
 # ============================================================================

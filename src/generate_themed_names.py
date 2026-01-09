@@ -53,6 +53,53 @@ THEME_WORDS = {
         # Data science/ML training terms (CS overlap)
         'dataset', 'frame', 'series', 'pipeline', 'workflow', 'experiment', 'track',
         'version', 'reproduce', 'baseline', 'benchmark', 'evaluate', 'compare',
+        # Abbreviations and acronyms
+        'api', 'sdk', 'ide', 'cli', 'gui', 'os', 'cpu', 'gpu', 'ram', 'rom', 'ssd', 'hdd',
+        'http', 'https', 'tcp', 'udp', 'ip', 'dns', 'cdn', 'sso', 'oauth', 'jwt', 'json',
+        'xml', 'html', 'css', 'js', 'ts', 'sql', 'nosql', 'db', 'orm', 'mvc', 'mvp', 'mvvm',
+        'rest', 'graphql', 'rpc', 'grpc', 'soap', 'ws', 'wss', 'ftp', 'sftp', 'ssh',
+        'git', 'svn', 'ci', 'cd', 'devops', 'sre', 'qa', 'tdd', 'bdd', 'ddd',
+        # Technical prefixes/suffixes
+        'code', 'byte', 'bit', 'hex', 'bin', 'oct', 'dec', 'base', 'radix',
+        'proto', 'meta', 'pseudo', 'semi', 'multi', 'uni', 'bi', 'tri', 'quad',
+        # Programming concepts
+        'func', 'method', 'class', 'obj', 'inst', 'var', 'const', 'let', 'def', 'lambda',
+        'loop', 'iter', 'rec', 'cond', 'if', 'else', 'elif', 'switch', 'case', 'break',
+        'cont', 'ret', 'yield', 'await', 'async', 'prom', 'then', 'catch', 'throw',
+        'try', 'except', 'finally', 'raise', 'assert', 'test', 'mock', 'stub', 'spy',
+        # Data structures
+        'dict', 'tuple', 'enum', 'union', 'struct', 'record', 'field', 'prop', 'attr',
+        'key', 'val', 'pair', 'entry', 'item', 'elem', 'cell', 'slot', 'bucket',
+        # Algorithms
+        'sort', 'search', 'find', 'seek', 'scan', 'traverse', 'walk', 'visit',
+        'bfs', 'dfs', 'dijkstra', 'astar', 'greedy', 'dp', 'backtrack', 'divide',
+        'conquer', 'merge', 'quick', 'heap', 'radix', 'count', 'bucket', 'shell',
+        # System concepts
+        'sys', 'proc', 'thread', 'fiber', 'coro', 'actor', 'channel', 'queue',
+        'lock', 'mutex', 'sem', 'cond', 'barrier', 'latch', 'fence', 'spin',
+        'deadlock', 'race', 'starv', 'livelock', 'preempt', 'schedule', 'context',
+        'switch', 'yield', 'block', 'unblock', 'wake', 'sleep', 'wait', 'notify',
+        # Networking
+        'net', 'socket', 'port', 'host', 'client', 'server', 'peer', 'node',
+        'packet', 'frame', 'segment', 'datagram', 'header', 'payload', 'trailer',
+        'routing', 'switching', 'bridging', 'nat', 'vpn', 'proxy', 'gateway',
+        'router', 'switch', 'hub', 'repeater', 'bridge', 'modem', 'adapter',
+        # Security
+        'auth', 'authz', 'encrypt', 'decrypt', 'hash', 'salt', 'pepper', 'key',
+        'cert', 'pki', 'tls', 'ssl', 'cipher', 'crypto', 'sign', 'verify', 'nonce',
+        # Storage
+        'file', 'dir', 'folder', 'path', 'name', 'ext', 'size', 'time', 'perm',
+        'read', 'write', 'append', 'trunc', 'seek', 'tell', 'flush', 'close',
+        'open', 'create', 'delete', 'rename', 'move', 'copy', 'link', 'symlink',
+        # Compression/encoding
+        'zip', 'gzip', 'bzip', 'lzma', 'xz', 'tar', 'rar', '7z', 'encode', 'decode',
+        'base64', 'base32', 'hex', 'ascii', 'utf8', 'utf16', 'utf32', 'unicode',
+        # Performance
+        'perf', 'bench', 'profile', 'trace', 'log', 'metric', 'stat', 'count',
+        'latency', 'throughput', 'qps', 'tps', 'rps', 'ops', 'iops', 'bandwidth',
+        # Testing
+        'unit', 'integ', 'e2e', 'system', 'accept', 'smoke', 'regress', 'perf',
+        'load', 'stress', 'chaos', 'fuzz', 'mutate', 'cover', 'assert', 'expect',
     ],
     
     'machine_learning': [
@@ -86,6 +133,52 @@ THEME_WORDS = {
         'baseline', 'benchmark', 'evaluate', 'assess', 'compare', 'ablate',
         'hyperparam', 'tune', 'grid', 'search', 'random', 'bayesian', 'opt',
         'ensemble', 'bag', 'boost', 'stack', 'blend', 'vote', 'average',
+        # Abbreviations and acronyms
+        'ml', 'ai', 'dl', 'nn', 'ann', 'dnn', 'cnn', 'rnn', 'lstm', 'gru', 'gan',
+        'vae', 'ae', 'bert', 'gpt', 't5', 'roberta', 'xlnet', 'albert', 'electra',
+        'transformer', 'attention', 'selfatt', 'multihead', 'ffn', 'layernorm',
+        'resnet', 'vgg', 'inception', 'mobilenet', 'efficientnet', 'yolo', 'ssd',
+        'rcnn', 'fasterrcnn', 'maskrcnn', 'retinanet', 'fpn', 'unet', 'segnet',
+        'svm', 'knn', 'kmeans', 'dbscan', 'hierarch', 'agglomer', 'spectral',
+        'pca', 'ica', 'lda', 'tsne', 'umap', 'autoenc', 'vae', 'gan', 'flow',
+        'normalize', 'standardize', 'minmax', 'robust', 'quantile', 'power',
+        'yeojohnson', 'boxcox', 'log', 'sqrt', 'recip', 'poly', 'spline',
+        # Neural network components
+        'conv', 'pool', 'maxpool', 'avgpool', 'globalpool', 'dropout', 'batchnorm',
+        'layernorm', 'instancenorm', 'groupnorm', 'spectralnorm', 'weightnorm',
+        'relu', 'gelu', 'elu', 'leaky', 'prelu', 'swish', 'mish', 'tanh', 'sigmoid',
+        'softmax', 'logsoftmax', 'softplus', 'softsign', 'selu', 'hardtanh',
+        # Optimizers
+        'sgd', 'adam', 'adamw', 'rmsprop', 'adagrad', 'adadelta', 'nadam', 'adamax',
+        'momentum', 'nesterov', 'lbfgs', 'adafactor', 'lamb', 'novograd', 'radam',
+        # Loss functions
+        'mse', 'mae', 'rmse', 'mape', 'smape', 'huber', 'smoothl1', 'focalloss',
+        'bce', 'ce', 'nll', 'kl', 'js', 'wasserstein', 'hinge', 'squaredhinge',
+        'poisson', 'cosine', 'triplet', 'contrastive', 'margin', 'arcface', 'cosface',
+        # Metrics
+        'acc', 'prec', 'rec', 'f1', 'fbeta', 'auc', 'roc', 'pr', 'ap', 'map',
+        'iou', 'dice', 'pixelacc', 'meanacc', 'freqwacc', 'topk', 'perplexity',
+        'bleu', 'rouge', 'meteor', 'cider', 'spice', 'bertscore', 'mover',
+        # Data processing
+        'augment', 'crop', 'flip', 'rotate', 'scale', 'shift', 'shear', 'zoom',
+        'bright', 'contrast', 'saturate', 'hue', 'noise', 'blur', 'sharpen',
+        'normalize', 'standardize', 'whiten', 'center', 'pca', 'zca',
+        # Model types
+        'supervised', 'unsupervised', 'semi', 'selfsupervised', 'weakly',
+        'reinforcement', 'rl', 'qlearn', 'policy', 'actor', 'critic', 'ppo',
+        'a3c', 'dqn', 'ddpg', 'td3', 'sac', 'trpo', 'impala', 'apex',
+        # Architectures
+        'residual', 'skip', 'bottleneck', 'inception', 'depthwise', 'separable',
+        'dilated', 'atrous', 'deformable', 'dynamic', 'adaptive', 'learned',
+        # Techniques
+        'distill', 'prune', 'quantize', 'sparsify', 'compress', 'accelerate',
+        'knowledge', 'transfer', 'domain', 'adapt', 'adversarial', 'robust',
+        'federated', 'distributed', 'parallel', 'async', 'sync', 'gradient',
+        'accumulate', 'clip', 'scale', 'mixed', 'precision', 'fp16', 'bf16',
+        # Frameworks/tools
+        'pytorch', 'tensorflow', 'keras', 'jax', 'flax', 'huggingface', 'transformers',
+        'onnx', 'tflite', 'coreml', 'tensorrt', 'openvino', 'ncnn', 'mnn',
+        'mlflow', 'wandb', 'tensorboard', 'neptune', 'comet', 'optuna', 'ray',
     ],
     
     'math': [
@@ -107,6 +200,67 @@ THEME_WORDS = {
         # Mathematicians
         'euler', 'gauss', 'newton', 'leibniz', 'pascal', 'fourier', 'laplace',
         'riemann', 'hilbert', 'turing', 'godel', 'einstein',
+        # Algebra
+        'algebra', 'linear', 'quadratic', 'cubic', 'quartic', 'polynomial', 'monomial',
+        'binomial', 'trinomial', 'factor', 'expand', 'simplify', 'substitute',
+        'eliminate', 'reduce', 'combine', 'distribute', 'commute', 'associate',
+        # Calculus
+        'calc', 'deriv', 'integral', 'diff', 'diffeq', 'ode', 'pde', 'limit', 'continu',
+        'differentiable', 'smooth', 'analytic', 'taylor', 'maclaurin', 'series',
+        'converge', 'diverge', 'radius', 'interval', 'domain', 'range', 'codomain',
+        # Geometry
+        'geo', 'euclid', 'non', 'hyperbolic', 'elliptic', 'spherical', 'projective',
+        'affine', 'topology', 'manifold', 'surface', 'curve', 'geodesic', 'metric',
+        'triangle', 'square', 'circle', 'ellipse', 'parabola', 'hyperbola', 'polygon',
+        'pentagon', 'hexagon', 'octagon', 'polyhedron', 'tetrahedron', 'cube', 'dodeca',
+        # Statistics
+        'stat', 'prob', 'random', 'sample', 'pop', 'mean', 'median', 'mode', 'std',
+        'var', 'cov', 'corr', 'skew', 'kurt', 'quartile', 'percentile', 'iqr',
+        'distrib', 'normal', 'gaussian', 'uniform', 'expo', 'poisson', 'binomial',
+        'bernoulli', 'gamma', 'beta', 'chi', 'student', 'fisher', 't', 'z',
+        # Number theory
+        'gcd', 'lcm', 'mod', 'congru', 'divis', 'prime', 'composite', 'factor',
+        'euclid', 'fermat', 'wilson', 'chinese', 'remainder', 'euler', 'totient',
+        'mobius', 'riemann', 'zeta', 'dirichlet', 'l', 'function', 'analytic',
+        # Linear algebra
+        'lin', 'alg', 'vector', 'matrix', 'tensor', 'scalar', 'dot', 'cross', 'outer',
+        'transpose', 'inverse', 'det', 'trace', 'rank', 'null', 'span', 'basis',
+        'orthogonal', 'orthonormal', 'eigen', 'value', 'vector', 'svd', 'qr', 'lu',
+        'cholesky', 'schur', 'jordan', 'canonical', 'form', 'diagonal', 'triangular',
+        # Discrete math
+        'discrete', 'combinatorics', 'permute', 'combine', 'factorial', 'choose',
+        'pascal', 'triangle', 'fibonacci', 'catalan', 'stirling', 'bell', 'partition',
+        'graph', 'theory', 'tree', 'forest', 'cycle', 'path', 'walk', 'trail',
+        'connected', 'component', 'bipartite', 'planar', 'coloring', 'matching',
+        # Set theory
+        'set', 'union', 'intersect', 'diff', 'complement', 'subset', 'superset',
+        'power', 'cartesian', 'product', 'relation', 'function', 'map', 'inject',
+        'surject', 'biject', 'cardinal', 'ordinal', 'countable', 'uncountable',
+        # Logic
+        'logic', 'proposition', 'predicate', 'quantifier', 'forall', 'exists',
+        'and', 'or', 'not', 'implies', 'iff', 'tautology', 'contradiction',
+        'satisfiable', 'valid', 'sound', 'complete', 'consistent', 'decidable',
+        # Abstract algebra
+        'group', 'ring', 'field', 'module', 'vector', 'space', 'algebra', 'lie',
+        'homomorphism', 'isomorphism', 'automorphism', 'kernel', 'image', 'quotient',
+        'subgroup', 'normal', 'cyclic', 'abelian', 'symmetric', 'alternating',
+        # Topology
+        'topology', 'topological', 'space', 'open', 'closed', 'compact', 'connected',
+        'path', 'connected', 'simply', 'manifold', 'homeomorphism', 'homotopy',
+        'fundamental', 'group', 'homology', 'cohomology', 'betti', 'euler', 'char',
+        # Analysis
+        'analysis', 'real', 'complex', 'measure', 'theory', 'lebesgue', 'borel',
+        'sigma', 'algebra', 'measurable', 'function', 'integral', 'derivative',
+        'fourier', 'transform', 'laplace', 'z', 'wavelet', 'hilbert', 'space',
+        # Numerical methods
+        'numerical', 'approximate', 'interpolate', 'extrapolate', 'extrap',
+        'newton', 'raphson', 'secant', 'bisect', 'regula', 'falsi', 'fixed', 'point',
+        'runge', 'kutta', 'euler', 'method', 'trapezoid', 'simpson', 'gauss',
+        'quadrature', 'monte', 'carlo', 'finite', 'difference', 'element',
+        # Symbols and notation
+        'sigma', 'sum', 'pi', 'prod', 'integral', 'partial', 'nabla', 'del',
+        'infinity', 'infty', 'forall', 'exists', 'in', 'notin', 'subset', 'superset',
+        'union', 'cup', 'intersect', 'cap', 'emptyset', 'emptyset', 'element',
     ],
     
     'information_retrieval': [
@@ -137,7 +291,67 @@ THEME_WORDS = {
         'inverted', 'forward', 'backward', 'bidirectional', 'multilingual',
         'relevance', 'ranking', 'scoring', 'weighting', 'boosting', 'penalizing',
         'rerank', 'refine', 'optimize', 'tune', 'calibrate', 'adjust',
-        'retrieval', 'retrieval', 'retrieval', 'retrieval', 'retrieval',
+        # Abbreviations
+        'ir', 'se', 'seo', 'sem', 'serp', 'qbe', 'qbs', 'qbd', 'qbt', 'qbf',
+        'nlp', 'ner', 'pos', 'dep', 'parse', 'tree', 'constituency', 'dependency',
+        # Search types
+        'fulltext', 'boolean', 'fuzzy', 'wildcard', 'regex', 'phrase', 'proximity',
+        'field', 'range', 'facet', 'filter', 'boost', 'function', 'script',
+        # Indexing
+        'index', 'inverted', 'forward', 'posting', 'list', 'skip', 'pointer',
+        'term', 'doc', 'freq', 'tf', 'df', 'idf', 'tfidf', 'bm25', 'lm', 'dirichlet',
+        'jelinek', 'mercer', 'absolute', 'discount', 'laplace', 'lidstone',
+        # Ranking models
+        'vsm', 'vector', 'space', 'probabilistic', 'language', 'model', 'lm',
+        'unigram', 'bigram', 'trigram', 'n', 'gram', 'markov', 'chain', 'hidden',
+        'hmm', 'crf', 'conditional', 'random', 'field', 'maximum', 'entropy',
+        'me', 'svm', 'rank', 'learning', 'to', 'rank', 'ltr', 'lambdamart',
+        'ranknet', 'listnet', 'adrank', 'xendcg', 'ndcg', 'map', 'mrr', 'mrr',
+        # Query processing
+        'query', 'parse', 'expand', 'rewrite', 'reformulate', 'translate',
+        'intent', 'classify', 'segment', 'decompose', 'federate', 'aggregate',
+        'fusion', 'combine', 'merge', 'interleave', 'diversify', 'rerank',
+        # Text processing
+        'tokenize', 'segment', 'normalize', 'lowercase', 'uppercase', 'casefold',
+        'stem', 'lemmatize', 'pos', 'tag', 'chunk', 'parse', 'ner', 'entity',
+        'recognize', 'extract', 'link', 'resolve', 'coreference', 'resolve',
+        'stopword', 'remove', 'filter', 'prune', 'trim', 'clean', 'sanitize',
+        # Embeddings
+        'embed', 'embedding', 'vector', 'dense', 'sparse', 'bow', 'tfidf',
+        'word2vec', 'fasttext', 'glove', 'elmo', 'bert', 'roberta', 'xlnet',
+        'sentence', 'transformer', 'universal', 'sentence', 'encoder', 'use',
+        'sbert', 'simcse', 'contrastive', 'learning', 'triplet', 'loss',
+        # Similarity measures
+        'cosine', 'dot', 'product', 'euclidean', 'manhattan', 'chebyshev',
+        'minkowski', 'hamming', 'jaccard', 'dice', 'overlap', 'sorensen',
+        'levenshtein', 'edit', 'distance', 'lcs', 'longest', 'common', 'subsequence',
+        'dtw', 'dynamic', 'time', 'warping', 'kl', 'divergence', 'js', 'jensen',
+        'shannon', 'wasserstein', 'earth', 'mover', 'emd', 'bhattacharyya',
+        # Evaluation metrics
+        'precision', 'recall', 'f1', 'fbeta', 'accuracy', 'error', 'rate',
+        'map', 'mean', 'average', 'precision', 'ndcg', 'normalized', 'discounted',
+        'cumulative', 'gain', 'mrr', 'reciprocal', 'rank', 'dcg', 'idcg',
+        'rr', 'reciprocal', 'rank', 'ap', 'average', 'precision', 'p', 'at', 'k',
+        'r', 'at', 'k', 'mrr', 'ndcg', 'at', 'k', 'err', 'expected', 'reciprocal',
+        'rank', 'rbp', 'rank', 'biased', 'precision', 'inst', 'instantaneous',
+        # Search engines
+        'lucene', 'solr', 'elasticsearch', 'sphinx', 'xapian', 'whoosh', 'tantivy',
+        'meilisearch', 'typesense', 'vespa', 'opensearch', 'algolia', 'swiftype',
+        # Query languages
+        'sql', 'nosql', 'sparql', 'cypher', 'gremlin', 'graphql', 'dsl', 'query',
+        'lucene', 'query', 'syntax', 'boolean', 'query', 'parser', 'ast',
+        # Index structures
+        'b', 'tree', 'bplus', 'lsm', 'log', 'structured', 'merge', 'sst', 'sorted',
+        'string', 'table', 'bloom', 'filter', 'cuckoo', 'hash', 'trie', 'radix',
+        'suffix', 'array', 'tree', 'fm', 'index', 'wavelet', 'matrix', 'compressed',
+        # Compression
+        'compress', 'deflate', 'gzip', 'bzip', 'lz4', 'snappy', 'zstd', 'lzma',
+        'delta', 'encoding', 'variable', 'byte', 'encoding', 'vbyte', 'varint',
+        'gamma', 'delta', 'elias', 'golomb', 'rice', 'huffman', 'arithmetic',
+        # Distributed search
+        'distributed', 'shard', 'replica', 'primary', 'secondary', 'leader',
+        'follower', 'coordinator', 'router', 'gateway', 'proxy', 'load', 'balance',
+        'consistent', 'hashing', 'ring', 'gossip', 'protocol', 'raft', 'paxos',
     ],
     
     'scale': [
@@ -162,6 +376,54 @@ THEME_WORDS = {
         # Scale-related concepts
         'scale', 'magnitude', 'scope', 'range', 'span', 'reach', 'extent', 'breadth',
         'width', 'depth', 'height', 'length', 'dimension', 'measure',
+        # Size synonyms
+        'gigantic', 'titanic', 'mammoth', 'gargantuan', 'leviathan', 'behemoth',
+        'jumbo', 'king', 'size', 'oversized', 'outsize', 'overscale', 'supersize',
+        'mega', 'giga', 'tera', 'peta', 'exa', 'zetta', 'yotta', 'kilo', 'hecto',
+        'deca', 'deci', 'centi', 'milli', 'micro', 'nano', 'pico', 'femto', 'atto',
+        # Magnitude terms
+        'magnitude', 'amplitude', 'intensity', 'strength', 'force', 'power', 'energy',
+        'momentum', 'velocity', 'speed', 'rate', 'frequency', 'density', 'concentration',
+        # Extent terms
+        'extent', 'scope', 'span', 'reach', 'range', 'breadth', 'width', 'length',
+        'stretch', 'spread', 'stretch', 'span', 'coverage', 'domain', 'territory',
+        'expanse', 'stretch', 'sweep', 'span', 'reach', 'range', 'scope', 'extent',
+        # Comprehensive terms
+        'comprehensive', 'complete', 'full', 'total', 'entire', 'whole', 'all',
+        'exhaustive', 'thorough', 'complete', 'full', 'total', 'entire', 'whole',
+        'universal', 'global', 'worldwide', 'omnipresent', 'ubiquitous', 'pervasive',
+        # Depth terms
+        'deep', 'profound', 'bottomless', 'abyssal', 'abysmal', 'unfathomable',
+        'immeasurable', 'infinite', 'endless', 'boundless', 'limitless', 'eternal',
+        'core', 'center', 'heart', 'essence', 'soul', 'spirit', 'kernel', 'nucleus',
+        'root', 'base', 'foundation', 'bedrock', 'ground', 'basis', 'fundamental',
+        # Height terms
+        'high', 'tall', 'elevated', 'lofty', 'towering', 'soaring', 'sky', 'high',
+        'cloud', 'peak', 'summit', 'pinnacle', 'crest', 'ridge', 'height', 'altitude',
+        'elevation', 'zenith', 'apex', 'acme', 'climax', 'culmination', 'peak',
+        # Width terms
+        'wide', 'broad', 'expansive', 'spacious', 'roomy', 'capacious', 'voluminous',
+        'extensive', 'sweeping', 'vast', 'immense', 'enormous', 'gigantic', 'colossal',
+        # Volume terms
+        'volume', 'capacity', 'bulk', 'mass', 'weight', 'density', 'magnitude', 'size',
+        'quantity', 'amount', 'measure', 'extent', 'scope', 'range', 'span', 'reach',
+        # Boundless terms
+        'infinite', 'endless', 'boundless', 'limitless', 'eternal', 'perpetual',
+        'unlimited', 'unbounded', 'immeasurable', 'incalculable', 'inexhaustible',
+        'unfathomable', 'unlimited', 'unrestricted', 'unconstrained', 'unfettered',
+        # Maximum terms
+        'max', 'maximum', 'peak', 'summit', 'apex', 'zenith', 'acme', 'climax',
+        'culmination', 'pinnacle', 'top', 'height', 'extreme', 'ultimate', 'supreme',
+        # Scale prefixes
+        'mega', 'macro', 'giga', 'tera', 'peta', 'exa', 'zetta', 'yotta', 'kilo',
+        'hecto', 'deca', 'deci', 'centi', 'milli', 'micro', 'nano', 'pico', 'femto',
+        'atto', 'zepto', 'yocto', 'super', 'ultra', 'hyper', 'meta', 'omni', 'pan',
+        # Measure terms
+        'measure', 'metric', 'gauge', 'scale', 'ruler', 'yardstick', 'benchmark',
+        'standard', 'norm', 'criterion', 'yardstick', 'touchstone', 'barometer',
+        # Dimension terms
+        'dimension', 'aspect', 'facet', 'side', 'angle', 'perspective', 'viewpoint',
+        'view', 'outlook', 'standpoint', 'position', 'stance', 'attitude', 'approach',
     ],
 }
 
@@ -366,17 +628,36 @@ def score_theme_relevance(name: str, theme: str) -> float:
 def create_word_variation(word: str) -> str:
     """Create natural variations of an English word."""
     if len(word) >= 4:
-        pos = random.randint(0, len(word) - 1)
-        if word[pos] in CONSONANTS:
-            similar = [c for c in 'bcdfghjklmnpqrstvwxyz' if c != word[pos]]
-            new_char = random.choice(similar)
-            variant = word[:pos] + new_char + word[pos+1:]
-            return variant
-        elif word[pos] in VOWELS:
-            other_vowels = [v for v in VOWELS if v != word[pos]]
-            if other_vowels:
-                variant = word[:pos] + random.choice(other_vowels) + word[pos+1:]
+        # Try multiple variation strategies
+        strategy = random.choice(['substitute', 'insert', 'delete', 'swap'])
+        
+        if strategy == 'substitute':
+            pos = random.randint(0, len(word) - 1)
+            if word[pos] in CONSONANTS:
+                similar = [c for c in 'bcdfghjklmnpqrstvwxyz' if c != word[pos]]
+                new_char = random.choice(similar)
+                variant = word[:pos] + new_char + word[pos+1:]
                 return variant
+            elif word[pos] in VOWELS:
+                other_vowels = [v for v in VOWELS if v != word[pos]]
+                if other_vowels:
+                    variant = word[:pos] + random.choice(other_vowels) + word[pos+1:]
+                    return variant
+        elif strategy == 'insert' and len(word) < 7:
+            pos = random.randint(0, len(word))
+            char = random.choice(CONSONANTS + VOWELS)
+            variant = word[:pos] + char + word[pos:]
+            return variant
+        elif strategy == 'delete' and len(word) > 4:
+            pos = random.randint(0, len(word) - 1)
+            variant = word[:pos] + word[pos+1:]
+            return variant
+        elif strategy == 'swap' and len(word) >= 2:
+            pos = random.randint(0, len(word) - 2)
+            chars = list(word)
+            chars[pos], chars[pos+1] = chars[pos+1], chars[pos]
+            variant = ''.join(chars)
+            return variant
     return word
 
 def get_next_file_number(base_pattern: str, suffix: str = '.txt', directory: str = '.') -> int:
@@ -437,6 +718,16 @@ def generate_themed_names(count: int = 500, theme: str = 'information_retrieval'
         if min_length <= len(word) <= max_length:
             names.add(word.lower())
     
+    # Method 1b: Extract prefixes/truncations from longer words
+    print("  - Extracting prefixes from longer words...")
+    for word in theme_words:
+        if len(word) > max_length:
+            # Extract prefixes of different lengths
+            for prefix_len in range(min_length, min(max_length + 1, len(word))):
+                prefix = word[:prefix_len].lower()
+                if min_length <= len(prefix) <= max_length and not has_awkward_vowel_ending(prefix):
+                    names.add(prefix)
+    
     # Method 2: Create variations of theme words
     print("  - Creating variations of theme words...")
     for word in theme_words:
@@ -446,26 +737,48 @@ def generate_themed_names(count: int = 500, theme: str = 'information_retrieval'
                 if min_length <= len(variant) <= max_length and variant != word:
                     names.add(variant.lower())
     
-    # Method 3: Combine short theme words
+    # Method 3: Combine short theme words (including 2-3 char words for more combinations)
     print("  - Combining theme words...")
-    short_theme_words = [w for w in theme_words if 3 <= len(w) <= 5]
-    for _ in range(count // 4):
+    # Include 2-3 char words for more combinations (especially useful for 4-6 char limits)
+    short_theme_words = [w for w in theme_words if 2 <= len(w) <= min(5, max_length - 2)]
+    # Scale iterations based on count - more iterations for higher counts
+    iterations = max(count // 4, len(short_theme_words) * 10) if count > 1000 else count // 4
+    for _ in range(iterations):
         if len(short_theme_words) >= 2:
             word1 = random.choice(short_theme_words)
             word2 = random.choice(short_theme_words)
             combined = word1 + word2
-            if min_length <= len(combined) <= max_length:
+            if min_length <= len(combined) <= max_length and not has_awkward_vowel_ending(combined):
                 names.add(combined.lower())
     
     # Method 4: Add common English suffixes to theme words
     print("  - Adding suffixes to theme words...")
-    suffixes = ['ly', 'er', 'ed', 'ing', 'ive', 'al', 'ic', 'est']
-    base_theme_words = [w for w in theme_words if 3 <= len(w) <= max_length - 2]
+    suffixes = ['ly', 'er', 'ed', 'ing', 'ive', 'al', 'ic', 'est', 'ify', 'ize', 'tion', 'sion', 'ment', 'ness', 'ity', 'able', 'ible', 'fy', 'io']
+    # Also include tech-style suffixes
+    tech_suffixes = ['tech', 'ai', 'ml', 'io', 'ly', 'fy']
+    all_suffixes = list(set(suffixes + tech_suffixes))
+    base_theme_words = [w for w in theme_words if 2 <= len(w) <= max_length - 2]
     for word in base_theme_words:
-        for suffix in suffixes:
-            suffixed = word + suffix
-            if min_length <= len(suffixed) <= max_length and not has_awkward_vowel_ending(suffixed):
-                names.add(suffixed.lower())
+        for suffix in all_suffixes:
+            if len(word) + len(suffix) <= max_length:
+                suffixed = word + suffix
+                if min_length <= len(suffixed) <= max_length and not has_awkward_vowel_ending(suffixed):
+                    names.add(suffixed.lower())
+    
+    # Method 5: Generate random combinations with theme word patterns (for high counts)
+    if count > 10000 and len(names) < count:
+        print("  - Generating random variations...")
+        # Use theme words as inspiration for random generation
+        for _ in range(min(count, count - len(names))):
+            if short_theme_words:
+                # Pick random characters inspired by theme words
+                base_word = random.choice(short_theme_words)
+                # Create more variations
+                for attempt in range(5):
+                    variant = create_word_variation(base_word)
+                    if min_length <= len(variant) <= max_length and variant not in names:
+                        names.add(variant.lower())
+                        break
     
     # Convert to list and limit
     name_list = list(names)
@@ -485,9 +798,15 @@ def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, ma
     print("  - Combining words from different themes...")
     short_words_by_theme = {}
     for theme in themes:
-        short_words_by_theme[theme] = [w for w in all_theme_words[theme] if 3 <= len(w) <= 5]
+        # Adjust word length based on max_length constraint
+        # For max_length=6, we can combine: 2+4, 3+3, 2+3, 3+2, 4+2
+        max_word_len = min(4, max_length - 2)  # Leave room for second word
+        min_word_len = 2
+        short_words_by_theme[theme] = [w for w in all_theme_words[theme] if min_word_len <= len(w) <= max_word_len]
     
-    for _ in range(count // 2):
+    # Scale iterations based on count
+    iterations = max(count // 2, 1000) if count > 1000 else count // 2
+    for _ in range(iterations):
         # Pick words from 2 different themes
         if len(themes) >= 2:
             theme1 = random.choice(themes)
@@ -501,9 +820,9 @@ def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, ma
                 combined1 = word1 + word2
                 combined2 = word2 + word1
                 
-                if min_length <= len(combined1) <= max_length:
+                if min_length <= len(combined1) <= max_length and not has_awkward_vowel_ending(combined1):
                     names.add(combined1.lower())
-                if min_length <= len(combined2) <= max_length:
+                if min_length <= len(combined2) <= max_length and not has_awkward_vowel_ending(combined2):
                     names.add(combined2.lower())
     
     # Method 2: Combine theme word + suffix from another theme
@@ -512,11 +831,15 @@ def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, ma
         other_themes = [t for t in themes if t != theme]
         if not other_themes:
             continue
-            
-        base_words = [w for w in all_theme_words[theme] if 3 <= len(w) <= max_length - 2]
-        suffix_words = [w for w in all_theme_words[random.choice(other_themes)] if 2 <= len(w) <= 3]
         
-        for _ in range(count // (len(themes) * 4)):
+        # Adjust lengths based on max_length constraint
+        max_base_len = max_length - 2  # Leave room for suffix
+        min_base_len = 2
+        base_words = [w for w in all_theme_words[theme] if min_base_len <= len(w) <= max_base_len]
+        suffix_words = [w for w in all_theme_words[random.choice(other_themes)] if 2 <= len(w) <= min(3, max_length - min_base_len)]
+        
+        iterations = max(count // (len(themes) * 4), 200) if count > 1000 else count // (len(themes) * 4)
+        for _ in range(iterations):
             if base_words and suffix_words:
                 base = random.choice(base_words)
                 suffix = random.choice(suffix_words)
@@ -527,11 +850,14 @@ def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, ma
     # Method 3: Three-way combinations (if 3+ themes)
     if len(themes) >= 3:
         print("  - Creating three-way theme combinations...")
-        for _ in range(count // 4):
+        # For 3-way with max_length=6, each word should be 2 chars max
+        max_word_len = max_length // 3  # Divide max_length by number of words
+        iterations = max(count // 4, 500) if count > 1000 else count // 4
+        for _ in range(iterations):
             selected_themes = random.sample(themes, min(3, len(themes)))
             words = []
             for theme in selected_themes:
-                short_words = [w for w in all_theme_words[theme] if 2 <= len(w) <= 4]
+                short_words = [w for w in all_theme_words[theme] if 2 <= len(w) <= max_word_len]
                 if short_words:
                     words.append(random.choice(short_words))
             
@@ -761,6 +1087,10 @@ def main():
         if has_awkward_vowel_ending(name):
             continue
         
+        # Filter out names ending with "ai" if .ai TLD will be checked (avoids "searchai.ai")
+        # We'll check this later when we know which TLDs are selected, but filter early if .ai is likely
+        # For now, we'll filter at domain check time
+        
         if is_easy_to_spell(name, prefs):
             score = score_name(name, prefs)
             english_score = score_english_word_like(name)
@@ -811,7 +1141,7 @@ def main():
     file_num = get_next_file_number(base_pattern, directory=output_dir)
     output_file = os.path.join(output_dir, f'{base_pattern}{file_num}.txt')
     with open(output_file, 'w') as f:
-        f.write(f"Themed Domain Name Suggestions: {theme}\n")
+        f.write(f"Themed Domain Name Suggestions: {theme_str}\n")
         f.write("Prioritizing theme-relevant English words\n")
         f.write("=" * 80 + "\n\n")
         f.write("SCORE DEFINITIONS:\n")
@@ -885,6 +1215,10 @@ def main():
     
     check_availability = input("\nCheck domain availability? (yes/no, default: yes): ").strip().lower() or "yes"
     
+    # Initialize variables that might be used later
+    available_file = None
+    available_domains = []
+    
     if check_availability in ['yes', 'y']:
         # Get TLD selection
         print("\nWhich TLD(s) would you like to check?")
@@ -902,6 +1236,16 @@ def main():
             tlds = ['.ai']
         
         print(f"\n✓ Will check domains for: {', '.join(tlds)}")
+        
+        # Filter out names ending with "ai" if .ai TLD is selected (avoids "searchai.ai")
+        if '.ai' in tlds:
+            original_count = len(scored_names)
+            scored_names = [(name, score, eng, theme) for name, score, eng, theme in scored_names 
+                          if not name.lower().endswith('ai')]
+            filtered_count = original_count - len(scored_names)
+            if filtered_count > 0:
+                print(f"  ℹ️  Filtered out {filtered_count} names ending with 'ai' (to avoid redundant .ai domains)")
+        
         print("\nHow many available domains should we find before stopping?")
         print("  (We'll check names in priority order until we find this many)")
         print("  (Domain checking is slow: ~1 second per domain)")
@@ -1018,6 +1362,10 @@ def main():
                 if checked >= max_to_check:
                     break
                 
+                # Skip names ending with "ai" when checking .ai domains (avoids "searchai.ai")
+                if tld == '.ai' and name.lower().endswith('ai'):
+                    continue
+                
                 domain = f"{name}{tld}"
                 domain_lower = domain.lower()
                 
@@ -1041,7 +1389,16 @@ def main():
                 checked += 1
                 print(f"  [{checked}/{max_to_check}] Checking {domain}...", end=' ', flush=True)
                 
-                is_available, status = run_whois(domain)
+                # Run whois with timeout handling
+                is_available, status = run_whois(domain, timeout=7, retries=1)
+                
+                # Handle timeout/errors gracefully
+                if is_available is None:
+                    # Timeout or error - mark as taken to avoid re-checking immediately
+                    # (but don't cache it permanently, might be temporary network issue)
+                    print(f"⚠️  {status}")
+                    # Continue to next domain instead of breaking
+                    continue
                 
                 if is_available:
                     # Get scores for this name
@@ -1070,10 +1427,9 @@ def main():
                         except Exception as e:
                             print(f"\n  ⚠️  Could not write to cache: {e}")
                     print("✗ Taken")
-                else:
-                    print(f"? {status}")
+                # Note: None case (timeout/error) is already handled above with continue
                 
-                # Rate limiting
+                # Rate limiting (1 second delay between checks)
                 time.sleep(1)
         
         # Close cache file handles
@@ -1236,7 +1592,8 @@ def main():
     print("FILES CREATED")
     print("=" * 80)
     print(f"📄 Generated names: {output_file}")
-    if check_availability in ['yes', 'y'] and 'available_domains' in locals() and available_domains:
+    # Check if domain checking was done and available domains were found
+    if check_availability in ['yes', 'y'] and available_file and available_domains:
         print(f"📄 Available domains: {available_file}")
     print(f"\n💡 Tip: Check {output_file} for all generated names with detailed scores")
 
