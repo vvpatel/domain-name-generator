@@ -17,6 +17,9 @@ sys.path.insert(0, src_dir)
 from generate_domain_names import (
     score_name,
     score_english_word_like,
+    score_primitive_verb_appeal,
+    score_primitive_bonus,
+    has_morphology_penalty,
     NamePreferences,
     is_easy_to_spell,
     CONSONANTS,
@@ -135,12 +138,12 @@ THEME_WORDS = {
         'ensemble', 'bag', 'boost', 'stack', 'blend', 'vote', 'average',
         # Abbreviations and acronyms
         'ml', 'ai', 'dl', 'nn', 'ann', 'dnn', 'cnn', 'rnn', 'lstm', 'gru', 'gan',
-        'vae', 'ae', 'bert', 'gpt', 't5', 'roberta', 'xlnet', 'albert', 'electra',
+        'ae', 'bert', 'gpt', 't5', 'roberta', 'xlnet', 'albert', 'electra',
         'transformer', 'attention', 'selfatt', 'multihead', 'ffn', 'layernorm',
         'resnet', 'vgg', 'inception', 'mobilenet', 'efficientnet', 'yolo', 'ssd',
         'rcnn', 'fasterrcnn', 'maskrcnn', 'retinanet', 'fpn', 'unet', 'segnet',
         'svm', 'knn', 'kmeans', 'dbscan', 'hierarch', 'agglomer', 'spectral',
-        'pca', 'ica', 'lda', 'tsne', 'umap', 'autoenc', 'vae', 'gan', 'flow',
+        'pca', 'ica', 'lda', 'tsne', 'umap', 'autoenc', 'gan', 'flow',
         'normalize', 'standardize', 'minmax', 'robust', 'quantile', 'power',
         'yeojohnson', 'boxcox', 'log', 'sqrt', 'recip', 'poly', 'spline',
         # Neural network components
@@ -152,7 +155,7 @@ THEME_WORDS = {
         'sgd', 'adam', 'adamw', 'rmsprop', 'adagrad', 'adadelta', 'nadam', 'adamax',
         'momentum', 'nesterov', 'lbfgs', 'adafactor', 'lamb', 'novograd', 'radam',
         # Loss functions
-        'mse', 'mae', 'rmse', 'mape', 'smape', 'huber', 'smoothl1', 'focalloss',
+        'rmse', 'mape', 'smape', 'huber', 'smoothl1', 'focalloss',
         'bce', 'ce', 'nll', 'kl', 'js', 'wasserstein', 'hinge', 'squaredhinge',
         'poisson', 'cosine', 'triplet', 'contrastive', 'margin', 'arcface', 'cosface',
         # Metrics
@@ -166,7 +169,7 @@ THEME_WORDS = {
         # Model types
         'supervised', 'unsupervised', 'semi', 'selfsupervised', 'weakly',
         'reinforcement', 'rl', 'qlearn', 'policy', 'actor', 'critic', 'ppo',
-        'a3c', 'dqn', 'ddpg', 'td3', 'sac', 'trpo', 'impala', 'apex',
+        'dqn', 'ddpg', 'td3', 'sac', 'trpo', 'impala', 'apex',
         # Architectures
         'residual', 'skip', 'bottleneck', 'inception', 'depthwise', 'separable',
         'dilated', 'atrous', 'deformable', 'dynamic', 'adaptive', 'learned',
@@ -441,6 +444,177 @@ BASE_WORDS = [
     'precise', 'pascal', 'turing', 'euler', 'gauss', 'darwin', 'einstein',
 ]
 
+def has_single_letter_affix(name: str) -> bool:
+    """Check if name has a single-letter prefix or suffix (e.g., 'queryq', 'xfind', 'queryx', 'findex')."""
+    if len(name) < 3:
+        return False
+    
+    name_lower = name.lower()
+    
+    # Check for single-letter suffix (e.g., 'queryq', 'queryx', 'findex')
+    # Problematic single letters that rarely appear alone: q, x, z, j, k, w, y
+    problematic_single_letters = ['q', 'x', 'z', 'j', 'k', 'w', 'y']
+    last_char = name_lower[-1]
+    
+    if last_char in problematic_single_letters:
+        # If ends with problematic single letter and has at least 4 chars, likely a suffix
+        if len(name_lower) >= 4:
+            # Check if second-to-last is a consonant (suggests word + single letter)
+            if name_lower[-2] in CONSONANTS:
+                return True
+            # Also check if it's a common word pattern like "query" + "q"
+            # If the name minus last char is a valid-looking word (has vowels)
+            base = name_lower[:-1]
+            if len(base) >= 3 and any(c in VOWELS for c in base):
+                return True
+    
+    # Check for single-letter prefix (e.g., 'xfind', 'qsearch')
+    first_char = name_lower[0]
+    if first_char in problematic_single_letters and len(name_lower) >= 4:
+        # Check if second char is a consonant (suggests single letter + word)
+        if name_lower[1] in CONSONANTS:
+            # Check if the rest looks like a word (has vowels)
+            rest = name_lower[1:]
+            if any(c in VOWELS for c in rest):
+                return True
+    
+    return False
+
+def has_bad_brand_patterns(name: str) -> bool:
+    """
+    Check for patterns that make names look auto-generated or weak as brands.
+    Based on feedback: avoid suffix spam, metric salad, letter-swapped variants, model references.
+    
+    Returns True if name should be filtered out (bad brand pattern detected).
+    """
+    name_lower = name.lower()
+    
+    # Pattern 1: Suffix spam (-ic, -al, -ed, -er, -ly, -ive, -ize, -tion, -sion, etc.)
+    # Examples: rankic, dataal, nodeer, termic, lossed, biasly, joinly, stemer, plotic,
+    #           linkive, indexive, rankive, queryive, matchive, rankize, indexize
+    problematic_suffixes = ['ic', 'al', 'ed', 'er', 'ly', 'ive', 'ize', 'tion', 'sion', 
+                           'ast', 'sem', 'est', 'able', 'ible', 'ment', 'ance', 'ence']
+    
+    # Valid English words that end in these suffixes (don't filter these)
+    valid_words_with_suffixes = {
+        'filter', 'finder', 'seeker', 'ranker', 'scorer', 'matcher', 'linker',
+        'parser', 'extractor', 'retriever', 'searcher', 'indexer', 'sorter',
+        'merger', 'joiner', 'splitter', 'slicer', 'cutter', 'trimmer', 'cleaner',
+        'reader', 'writer', 'loader', 'saver', 'storer', 'fetcher', 'querier',
+        'scanner', 'walker', 'visitor', 'tracer', 'tracker', 'prober', 'digger',
+        'miner', 'discoverer', 'explorer', 'navigator', 'traverser', 'ranking',
+        'querying', 'indexing', 'loading', 'joining', 'folding', 'triming', 'linking'
+    }
+    
+    # If it's a valid English word, don't filter (but still check other patterns below)
+    # Note: We check valid_words first, but still need to check other patterns
+    is_valid_word = name_lower in valid_words_with_suffixes
+    
+    if not is_valid_word:
+        # Check if name ends with these suffixes and the root word is a common technical term
+        # This catches cases like "rankic" (rank + ic), "dataal" (data + al), etc.
+        for suffix in problematic_suffixes:
+            if name_lower.endswith(suffix) and len(name_lower) >= 5:
+                # Extract the root (everything before the suffix)
+                root = name_lower[:-len(suffix)]
+                
+                # If root is a common technical word, this is likely suffix spam
+                common_tech_roots = [
+                    'rank', 'data', 'node', 'term', 'loss', 'scan', 'fast', 'bias', 'join',
+                    'stem', 'plot', 'shot', 'wide', 'test', 'fold', 'zero', 'word', 'code',
+                    'byte', 'bit', 'file', 'path', 'link', 'edge', 'tree', 'list', 'map',
+                    'set', 'hash', 'key', 'val', 'pair', 'item', 'elem', 'cell', 'slot',
+                    'sort', 'search', 'find', 'seek', 'walk', 'visit', 'read',
+                    'write', 'load', 'save', 'store', 'fetch', 'query', 'index', 'match',
+                    'merge', 'split', 'slice', 'cut', 'trim', 'clean', 'adam', 'bert',
+                    'trace', 'track', 'mine', 'scale', 'parse', 'sparse', 'rerank', 'cache',
+                    'filter'
+                ]
+                
+                if root in common_tech_roots:
+                    return True  # Bad: rankic, dataal, nodeer, adamer, linkive, indexive, etc.
+                
+                # Also check if root + suffix creates an awkward combination
+                # e.g., "lossed" (loss + ed), "berter" (bert + er), "linkive" (link + ive)
+                if len(root) >= 3 and root[-1] in CONSONANTS:
+                    # If root ends in consonant and suffix starts with vowel/consonant, it's likely awkward
+                    if suffix in ['ed', 'er', 'ic', 'al', 'ly', 'ive', 'ize']:
+                        # Additional check: if the combination looks forced
+                        if root[-1] in 'rst' and suffix in ['ed', 'er']:
+                            return True  # e.g., "lossed", "berter"
+                        if root[-1] in 'mn' and suffix in ['ic', 'al']:
+                            return True  # e.g., "termic", "dataal"
+                        if root[-1] in 'k' and suffix in ['ive', 'ize']:
+                            return True  # e.g., "linkive", "rankize"
+                        if root[-1] in 'x' and suffix in ['ive', 'ize']:
+                            return True  # e.g., "indexive", "indexize"
+                
+                # Filter made-up suffix combinations like -tion, -sion, -ast, -sem, -est
+                # These are almost always auto-generated looking
+                if suffix in ['tion', 'sion', 'ast', 'sem', 'est']:
+                    if root in common_tech_roots or (len(root) >= 3 and root[-1] in CONSONANTS):
+                        return True  # e.g., "linktion", "linksion", "linkast", "linksem", "linkest"
+    
+    # Pattern 2: Metric salad (evaluation metrics)
+    # Examples: smape, pcascore, scoreauc, scoremse, scoremae, scoref1, scorekl, listnet, ranknet
+    metric_terms = [
+        'smape', 'mape', 'mae', 'mse', 'rmse', 'f1', 'fbeta', 'auc', 'roc', 'pr',
+        'ap', 'map', 'ndcg', 'mrr', 'dcg', 'idcg', 'err', 'rbp', 'iou', 'dice',
+        'bleu', 'rouge', 'meteor', 'cider', 'spice', 'bertscore', 'mover',
+        'pcascore', 'scoreauc', 'scoremse', 'scoremae', 'scoref1', 'scorekl',
+        'scoremap', 'scorendcg', 'scoremrr', 'listnet', 'ranknet', 'adrank'
+    ]
+    
+    if name_lower in metric_terms:
+        return True
+    
+    # Check if name contains metric terms
+    for metric in metric_terms:
+        if metric in name_lower and len(metric) >= 3:
+            return True
+    
+    # Pattern 3: Letter-swapped score/index/query names (strengthened)
+    # Examples: sscore, rscore, scorei, indexi, queryi, wquery, oindex
+    # But NOT valid words like "parser", "ranker", "matcher"
+    base_words = ['score', 'rank', 'index', 'query', 'search', 'parse', 'match']
+    for base in base_words:
+        if len(name_lower) > len(base):
+            # Single letter prefix (e.g., sscore, rscore, wquery, oindex)
+            if name_lower.startswith(base) and len(name_lower) == len(base) + 1:
+                # Don't filter if it's a valid word (e.g., "parser" is valid)
+                if name_lower not in valid_words_with_suffixes:
+                    if name_lower[-1].isalpha():
+                        return True  # e.g., "scorei", "indexi"
+            # Single letter suffix (e.g., sscore, rscore)
+            elif name_lower.endswith(base) and len(name_lower) == len(base) + 1:
+                # Don't filter if it's a valid word
+                if name_lower not in valid_words_with_suffixes:
+                    if name_lower[0].isalpha():
+                        return True  # e.g., "sscore", "rscore", "wquery", "oindex"
+    
+    # Pattern 4: Over-specified model references (will age badly)
+    # Examples: bertic, berted, adamer, baset5, basetf, vaescore
+    model_terms = [
+        'bert', 'roberta', 'albert', 'electra', 'gpt', 't5', 't3', 't2', 't1',
+        'vae', 'gan', 'lstm', 'gru', 'cnn', 'rnn', 'transformer', 'attention', 'tf'
+    ]
+    
+    # Check if name contains model terms in a way that anchors to specific tech
+    for model in model_terms:
+        if model in name_lower:
+            # If it's just the model name, that's OK (e.g., "bert" as a primitive)
+            # But if it's combined with suffixes or other words, it's over-specified
+            if name_lower != model:
+                # Check for combinations like "bertic", "berted", "adamer", "baset5", "basetf"
+                if (name_lower.startswith(model) and len(name_lower) > len(model)) or \
+                   (name_lower.endswith(model) and len(name_lower) > len(model)) or \
+                   (f'{model}score' in name_lower) or (f'base{model}' in name_lower) or \
+                   (f'{model}base' in name_lower):
+                    return True  # Over-specified model reference
+    
+    return False
+
+
 def has_awkward_vowel_ending(name: str) -> bool:
     """Check if name ends with awkward vowel-vowel patterns like eive, eing, eed, eest."""
     name_lower = name.lower()
@@ -485,11 +659,17 @@ def has_awkward_vowel_ending(name: str) -> bool:
                 if last_5[i] in VOWELS and last_5[i+1] in VOWELS:
                     return True
     
-    # Pattern 3: Vowel-vowel-vowel endings (3+ consecutive vowels at end)
+    # Pattern 3: Three or more consecutive vowels anywhere in the name (e.g., 'treeer', 'aiiee')
     if len(name_lower) >= 3:
-        last_3 = name_lower[-3:]
-        if all(c in VOWELS for c in last_3):
-            return True
+        # Check for 3+ consecutive vowels anywhere in the name
+        consecutive_vowels = 0
+        for char in name_lower:
+            if char in VOWELS:
+                consecutive_vowels += 1
+                if consecutive_vowels >= 3:
+                    return True
+            else:
+                consecutive_vowels = 0
     
     # Pattern 4: Vowel-vowel-consonant-vowel at end (like eive, aive)
     # This catches cases where two vowels are followed by consonant then vowel
@@ -660,15 +840,21 @@ def create_word_variation(word: str) -> str:
             return variant
     return word
 
-def get_next_file_number(base_pattern: str, suffix: str = '.txt', directory: str = '.') -> int:
+def get_timestamp_filename(prefix: str, directory: str = '.') -> str:
     """
-    Get the next number for a file pattern.
-    Example: base_pattern = 'themed_names_math_', suffix = '.txt' 
-             -> finds themed_names_math_1.txt, themed_names_math_2.txt, etc.
-    Example: base_pattern = 'available_math_ai_', suffix = '_domains.txt'
-             -> finds available_math_ai_1_domains.txt, available_math_ai_2_domains.txt, etc.
-    Returns the next available number (1 if no files exist).
+    Generate a timestamped filename.
+    Format: YYYYMMDD_HHMMSS_{prefix}.txt
+    Example: 20241231_143022_generated_domains.txt
+    
+    Args:
+        prefix: The prefix for the filename (e.g., 'generated_domains', 'available_domains')
+        directory: Directory where the file will be saved
+    
+    Returns:
+        Full path to the timestamped file
     """
+    from datetime import datetime
+    
     # Get project root (parent of src directory)
     if directory == '.':
         # If relative path, resolve to project root
@@ -681,26 +867,10 @@ def get_next_file_number(base_pattern: str, suffix: str = '.txt', directory: str
         project_root = os.path.dirname(src_dir)
         directory = os.path.join(project_root, directory)
     
-    if not os.path.exists(directory):
-        return 1
-    
-    # Find all files matching the pattern
-    # Escape the base pattern and suffix, but allow digits between them
-    escaped_base = re.escape(base_pattern)
-    escaped_suffix = re.escape(suffix)
-    pattern = re.compile(rf'^{escaped_base}(\d+){escaped_suffix}$')
-    max_num = 0
-    
-    try:
-        for filename in os.listdir(directory):
-            match = pattern.match(filename)
-            if match:
-                num = int(match.group(1))
-                max_num = max(max_num, num)
-    except OSError:
-        return 1
-    
-    return max_num + 1
+    # Generate timestamp in format YYYYMMDD_HHMMSS
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f'{timestamp}_{prefix}.txt'
+    return os.path.join(directory, filename)
 
 def generate_themed_names(count: int = 500, theme: str = 'information_retrieval', min_length: int = 4, max_length: int = 8) -> list:
     """Generate names prioritizing words relevant to the selected theme."""
@@ -740,6 +910,7 @@ def generate_themed_names(count: int = 500, theme: str = 'information_retrieval'
     # Method 3: Combine short theme words (including 2-3 char words for more combinations)
     print("  - Combining theme words...")
     # Include 2-3 char words for more combinations (especially useful for 4-6 char limits)
+    # Exclude single-letter words to avoid "queryq", "xfind" etc.
     short_theme_words = [w for w in theme_words if 2 <= len(w) <= min(5, max_length - 2)]
     # Scale iterations based on count - more iterations for higher counts
     iterations = max(count // 4, len(short_theme_words) * 10) if count > 1000 else count // 4
@@ -748,7 +919,9 @@ def generate_themed_names(count: int = 500, theme: str = 'information_retrieval'
             word1 = random.choice(short_theme_words)
             word2 = random.choice(short_theme_words)
             combined = word1 + word2
-            if min_length <= len(combined) <= max_length and not has_awkward_vowel_ending(combined):
+            if (min_length <= len(combined) <= max_length and 
+                not has_awkward_vowel_ending(combined) and 
+                not has_single_letter_affix(combined)):
                 names.add(combined.lower())
     
     # Method 4: Add common English suffixes to theme words
@@ -820,9 +993,13 @@ def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, ma
                 combined1 = word1 + word2
                 combined2 = word2 + word1
                 
-                if min_length <= len(combined1) <= max_length and not has_awkward_vowel_ending(combined1):
+                if (min_length <= len(combined1) <= max_length and 
+                    not has_awkward_vowel_ending(combined1) and 
+                    not has_single_letter_affix(combined1)):
                     names.add(combined1.lower())
-                if min_length <= len(combined2) <= max_length and not has_awkward_vowel_ending(combined2):
+                if (min_length <= len(combined2) <= max_length and 
+                    not has_awkward_vowel_ending(combined2) and 
+                    not has_single_letter_affix(combined2)):
                     names.add(combined2.lower())
     
     # Method 2: Combine theme word + suffix from another theme
@@ -831,7 +1008,7 @@ def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, ma
         other_themes = [t for t in themes if t != theme]
         if not other_themes:
             continue
-        
+            
         # Adjust lengths based on max_length constraint
         max_base_len = max_length - 2  # Leave room for suffix
         min_base_len = 2
@@ -844,7 +1021,9 @@ def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, ma
                 base = random.choice(base_words)
                 suffix = random.choice(suffix_words)
                 combined = base + suffix
-                if min_length <= len(combined) <= max_length and not has_awkward_vowel_ending(combined):
+                if (min_length <= len(combined) <= max_length and 
+                    not has_awkward_vowel_ending(combined) and 
+                    not has_single_letter_affix(combined)):
                     names.add(combined.lower())
     
     # Method 3: Three-way combinations (if 3+ themes)
@@ -863,7 +1042,9 @@ def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, ma
             
             if len(words) >= 2:
                 combined = ''.join(words)
-                if min_length <= len(combined) <= max_length and not has_awkward_vowel_ending(combined):
+                if (min_length <= len(combined) <= max_length and 
+                    not has_awkward_vowel_ending(combined) and 
+                    not has_single_letter_affix(combined)):
                     names.add(combined.lower())
     
     # Method 4: Add suffixes to cross-theme combinations
@@ -884,7 +1065,9 @@ def generate_cross_theme_names(count: int, themes: list, min_length: int = 4, ma
                     if min_length <= len(combined) <= max_length - 2:
                         for suffix in suffixes:
                             final = combined + suffix
-                            if min_length <= len(final) <= max_length and not has_awkward_vowel_ending(final):
+                            if (min_length <= len(final) <= max_length and 
+                                not has_awkward_vowel_ending(final) and 
+                                not has_single_letter_affix(final)):
                                 names.add(final.lower())
     
     # Convert to list and limit
@@ -1087,31 +1270,45 @@ def main():
         if has_awkward_vowel_ending(name):
             continue
         
-        # Filter out names ending with "ai" if .ai TLD will be checked (avoids "searchai.ai")
-        # We'll check this later when we know which TLDs are selected, but filter early if .ai is likely
-        # For now, we'll filter at domain check time
+        # Filter out bad brand patterns (suffix spam, metric salad, letter-swapped, model refs)
+        if has_bad_brand_patterns(name):
+            continue
+        
+        # Filter out single-letter affixes (queryq, findex, xfind)
+        if has_single_letter_affix(name):
+            continue
+        
+        # Filter out names ending with "ai" (redundant with .ai TLD - e.g., "searchai.ai")
+        # This avoids redundant names like "linkai.ai", "searchai.ai", "rankai.ai"
+        if name.lower().endswith('ai') and len(name) > 2:
+            continue
         
         if is_easy_to_spell(name, prefs):
             score = score_name(name, prefs)
             english_score = score_english_word_like(name)
+            primitive_score = score_primitive_verb_appeal(name)
             
             # Score against all selected themes and take the maximum
             theme_scores = [score_theme_relevance(name, theme) for theme in themes]
             theme_score = max(theme_scores)  # Use the best matching theme score
             
-            # Combine scores (theme relevance is important)
-            combined_score = score + (theme_score * 0.3)  # Weight theme relevance
+            # Combine scores (FIXED: reduced theme weight, prioritize primitives and English words)
+            # Theme relevance reduced from 0.3 to 0.1 (was overvalued, produced too-literal names)
+            # Primitives and English words get highest priority
+            combined_score = score + (theme_score * 0.1) + (english_score * 0.4) + (primitive_score * 0.5)  # Theme reduced, primitives prioritized
             
-            scored_names.append((name, combined_score, english_score, theme_score))
+            scored_names.append((name, combined_score, english_score, theme_score, primitive_score))
     
-    # Sort by combined score (theme + English + total)
-    scored_names.sort(key=lambda x: (-x[3], -x[1], -x[2]))  # Theme first, then total, then English
+    # Sort by combined score (Primitive verbs first for domain checking priority, then English, then theme, then total)
+    # Primitive verbs like "parse" should rank highest
+    scored_names.sort(key=lambda x: (-x[4], -x[2], -x[3], -x[1]))  # Primitive first, then English, then theme, then total
     
     # Find max values for normalization
-    max_theme = max(ts for _, _, _, ts in scored_names) if scored_names else 280
-    max_english = max(es for _, _, es, _ in scored_names) if scored_names else 175
-    max_base = max(score_name(n, prefs) for n, _, _, _ in scored_names) if scored_names else 200
-    max_total = max(ts for _, ts, _, _ in scored_names) if scored_names else 250
+    max_theme = max(ts for _, _, _, ts, _ in scored_names) if scored_names else 280
+    max_english = max(es for _, _, es, _, _ in scored_names) if scored_names else 175
+    max_primitive = max(ps for _, _, _, _, ps in scored_names) if scored_names else 100
+    max_base = max(score_name(n, prefs) for n, _, _, _, _ in scored_names) if scored_names else 200
+    max_total = max(ts for _, ts, _, _, _ in scored_names) if scored_names else 250
     
     # Get max values for breakdown dimensions (calculate from actual scores)
     from generate_domain_names import (
@@ -1133,13 +1330,10 @@ def main():
     # Add number to prevent overwriting previous runs (1, 2, 3, etc.)
     if len(themes) == 1:
         theme_str = themes[0]
-        base_pattern = f'themed_names_{theme_str}_'
     else:
         # For multiple themes, create a combined name
         theme_str = '_'.join(themes)
-        base_pattern = f'themed_names_{theme_str}_'
-    file_num = get_next_file_number(base_pattern, directory=output_dir)
-    output_file = os.path.join(output_dir, f'{base_pattern}{file_num}.txt')
+    output_file = get_timestamp_filename('generated_domains', directory=output_dir)
     with open(output_file, 'w') as f:
         f.write(f"Themed Domain Name Suggestions: {theme_str}\n")
         f.write("Prioritizing theme-relevant English words\n")
@@ -1166,7 +1360,7 @@ def main():
         f.write("Scores normalized to 0-100 (integers): Theme | English | Base | Total\n")
         f.write("Breakdown: Inv | Eng | Exec | Tech | Broad\n\n")
         
-        for i, (name, total_score, english_score, theme_score) in enumerate(scored_names, 1):
+        for i, (name, total_score, english_score, theme_score, primitive_score) in enumerate(scored_names, 1):
             # Get base score (without theme boost)
             base_score = score_name(name, prefs)
             
@@ -1189,9 +1383,8 @@ def main():
             technical_norm = int((technical / max_technical) * 100) if max_technical > 0 else 0
             broader_norm = int((broader / max_broader) * 100) if max_broader > 0 else 0
             
-            theme_star = "⭐" if theme_score >= 50 else " "
             # Show .ai by default in the generated names file (before TLD selection)
-            f.write(f"{i:3d}. {theme_star} {name}.ai\n")
+            f.write(f"{i:3d}. {name}.ai\n")
             f.write(f"     Scores: Theme:{theme_norm:3d} | English:{english_norm:3d} | ")
             f.write(f"Base:{base_norm:3d} | Total:{total_norm:3d}\n")
             f.write(f"     Breakdown: Inv:{investor_norm:3d} Eng:{engineer_norm:3d} Exec:{executive_norm:3d} ")
@@ -1200,10 +1393,9 @@ def main():
     print(f"\n✓ Saved {len(scored_names)} names to {output_file}")
     print(f"  📄 Output file: {output_file}")
     print("\nTop 30 names (prioritizing theme relevance):")
-    for i, (name, total_score, english_score, theme_score) in enumerate(scored_names[:30], 1):
-        theme_star = "⭐" if theme_score >= 50 else " "
+    for i, (name, total_score, english_score, theme_score, primitive_score) in enumerate(scored_names[:30], 1):
         # Show .ai by default in preview (before TLD selection)
-        print(f"  {i:2d}. {theme_star} {name}.ai (Total: {total_score:.1f}, Theme: {theme_score:.1f})")
+        print(f"  {i:2d}. {name}.ai (Total: {total_score:.1f}, Theme: {theme_score:.1f})")
     
     # Optional: Check domain availability
     print("\n" + "=" * 80)
@@ -1240,7 +1432,7 @@ def main():
         # Filter out names ending with "ai" if .ai TLD is selected (avoids "searchai.ai")
         if '.ai' in tlds:
             original_count = len(scored_names)
-            scored_names = [(name, score, eng, theme) for name, score, eng, theme in scored_names 
+            scored_names = [(name, score, eng, theme, prim) for name, score, eng, theme, prim in scored_names
                           if not name.lower().endswith('ai')]
             filtered_count = original_count - len(scored_names)
             if filtered_count > 0:
@@ -1339,7 +1531,7 @@ def main():
         
         # Create a lookup for scores by name
         name_to_scores = {}
-        for name, total_score, english_score, theme_score in scored_names:
+        for name, total_score, english_score, theme_score, primitive_score in scored_names:
             base_score = score_name(name, prefs)
             name_to_scores[name] = {
                 'total': total_score,
@@ -1348,7 +1540,7 @@ def main():
                 'base': base_score
             }
         
-        for name, total_score, english_score, theme_score in scored_names:
+        for name, total_score, english_score, theme_score, primitive_score in scored_names:
             if len(available_domains) >= num_available:
                 break
             if checked >= max_to_check:
@@ -1454,18 +1646,8 @@ def main():
         if skipped_available > 0:
             print(f"  ⚡ Skipped {skipped_available} domains (already in cache as available)")
         
-        # Create filename with TLD info (define before checking available_domains)
-        # Add number to prevent overwriting previous runs (1, 2, 3, etc.)
-        tld_suffix = '_'.join([tld.replace('.', '') for tld in tlds])
-        if len(themes) == 1:
-            theme_str = themes[0]
-            base_pattern = f'available_{theme_str}_{tld_suffix}_'
-        else:
-            # For multiple themes, create a combined name
-            theme_str = '_'.join(themes)
-            base_pattern = f'available_{theme_str}_{tld_suffix}_'
-        file_num = get_next_file_number(base_pattern, suffix='_domains.txt', directory=output_dir)
-        available_file = os.path.join(output_dir, f'{base_pattern}{file_num}_domains.txt')
+        # Create filename with timestamp
+        available_file = get_timestamp_filename('available_domains', directory=output_dir)
         
         # Save available domains with scores and definitions
         if available_domains:

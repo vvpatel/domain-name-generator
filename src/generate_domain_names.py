@@ -11,6 +11,17 @@ import re
 from itertools import product
 from typing import Dict, List, Set, Tuple
 
+# Try to import dictionary for English word checking
+try:
+    import enchant
+    DICT_AVAILABLE = True
+    english_dict = enchant.Dict("en_US")
+except ImportError:
+    DICT_AVAILABLE = False
+    # Fallback: large English word list
+    # We'll use a simple check for common words
+    english_dict = None
+
 
 # ============================================================================
 # KEYWORD CATEGORIES
@@ -815,25 +826,69 @@ def score_executive_appeal(name: str) -> float:
 def score_technical_depth(name: str) -> float:
     """
     Score name for technical depth (shows sophistication without being opaque).
-    Focuses on algorithm/sophistication signals, distinct from engineer appeal.
+    FIXED: Now rewards foundational operations (parse, compile) over model buzzwords (rerank).
+    
+    Parse is: compiler theory, NLP, syntax trees, IR pipelines, structured understanding.
+    Rerank is: a specific ML operation, less foundational, more narrow.
     """
     score = 0.0
     name_lower = name.lower()
+    
+    # Tier 1: Foundational CS/Math operations (+40-50) - HIGHEST PRIORITY
+    # These are core operations that appear across multiple domains
+    foundational_operations = [
+        'parse', 'compile', 'execute', 'compute', 'transform',  # Compiler/CS theory
+        'rank', 'index', 'query', 'search', 'match',  # IR primitives
+        'vector', 'tensor', 'matrix', 'graph', 'field', 'kernel',  # Math/ML primitives
+        'impute', 'latent', 'metric'  # Statistical/ML primitives
+    ]
+    
+    if name_lower in foundational_operations:
+        score += 50  # Maximum score for foundational operations
+    
+    # Tier 2: Core algorithms/concepts (+30-35)
+    core_algorithms = [
+        'sort', 'hash', 'cache', 'filter', 'extract', 'retrieve',
+        'encode', 'decode', 'compress', 'expand', 'merge', 'join',
+        'map', 'reduce', 'fold', 'scan', 'trace', 'track'
+    ]
+    
+    if name_lower in core_algorithms:
+        score += 35  # Strong technical depth
+    
+    # Tier 3: ML-specific but foundational (+25-30)
+    ml_foundational = [
+        'embed', 'cluster', 'classify', 'regress', 'predict',
+        'vector', 'tensor', 'metric', 'similarity'
+    ]
+    
+    if name_lower in ml_foundational:
+        score += 30  # ML foundational concepts
     
     # Technical proper names (Pascal, Turing, etc.) signal depth
     technical_proper_names = ['pascal', 'turing', 'euler', 'gauss', 'newton', 'darwin', 'einstein']
     if name_lower in technical_proper_names:
         score += 40  # Technical proper names signal depth
     
-    # Direct technical references (strong signal) - algorithm/metric names
+    # Tier 4: Model-specific terms (+10-15) - LOWER PRIORITY
+    # These are narrower and age badly
+    model_specific = ['rerank', 'reranked', 'bert', 'gpt', 'transformer']
+    if any(term in name_lower for term in model_specific):
+        score += 15  # Much lower than foundational operations
+    
+    # Direct technical references (algorithm/metric names) - but lower than primitives
     if any(term in name_lower for term in TECHNICAL_TERMS):
-        score += 35  # Algorithm/metric references show depth
+        # Only add if not already a foundational operation
+        if name_lower not in foundational_operations:
+            score += 25  # Algorithm/metric references show depth
     
     # Technical concepts embedded (more sophisticated than basic terms)
     advanced_tech_concepts = ['neural', 'semantic', 'tensor', 'matrix', 'gradient', 
                             'entropy', 'embedding', 'similarity', 'clustering']
     if any(concept in name_lower for concept in advanced_tech_concepts):
-        score += 25  # Advanced concepts show depth
+        # Only add if not already a foundational operation
+        if name_lower not in foundational_operations:
+            score += 20  # Advanced concepts show depth
     
     # Abstract/systemic suggests platform thinking
     if any(term in name_lower for term in ABSTRACT_NAMES):
@@ -999,6 +1054,257 @@ def score_broader_appeal(name: str) -> float:
     return min(score, 100.0)
 
 
+def score_primitive_bonus(name: str) -> float:
+    """
+    Score name for being a primitive (foundational word) used in math/CS/science.
+    Based on feedback: parse, impute, field, kernel are primitives that deserve maximum bonus.
+    
+    Primitives are:
+    - Single words (not compound)
+    - Verbs or nouns already used in math/CS/science
+    - Not invented via suffixing
+    - Foundational operations
+    
+    Returns score 0-100, where 100 = perfect primitive.
+    """
+    name_lower = name.lower()
+    
+    # Must be a single word (not compound)
+    if ' ' in name_lower or '-' in name_lower:
+        return 0.0
+    
+    # Tier 1: Perfect Primitives (+50 points) - foundational CS/math/science words
+    tier1_primitives = [
+        # CS/IR primitives
+        'parse', 'impute', 'field', 'kernel', 'vector', 'tensor', 'graph', 'metric', 'latent',
+        'rank', 'index', 'query', 'search', 'match', 'filter', 'extract', 'retrieve',
+        # Math primitives
+        'matrix', 'scalar', 'norm', 'span', 'basis', 'eigen', 'trace', 'det',
+        # Statistical primitives
+        'mean', 'median', 'mode', 'variance', 'covariance', 'correlation',
+        # System primitives
+        'map', 'reduce', 'fold', 'scan', 'trace', 'track', 'probe', 'mine'
+    ]
+    
+    if name_lower in tier1_primitives:
+        return 100.0  # Perfect primitive - maximum score
+    
+    # Tier 2: Strong Primitives (+40 points) - core operations
+    tier2_primitives = [
+        'find', 'seek', 'fetch', 'sort', 'link', 'merge', 'join', 'split',
+        'slice', 'cut', 'trim', 'clean', 'transform', 'convert', 'encode',
+        'decode', 'compress', 'expand', 'scale', 'shift', 'rotate', 'flip',
+        'read', 'write', 'load', 'save', 'store', 'cache', 'get', 'set',
+        'put', 'take', 'send', 'receive', 'push', 'pull', 'move', 'copy',
+        'discover', 'explore', 'navigate', 'traverse', 'walk', 'visit'
+    ]
+    
+    if name_lower in tier2_primitives:
+        return 85.0  # Strong primitive
+    
+    # Tier 3: Good Primitives (+30 points) - still foundational
+    tier3_primitives = [
+        'build', 'create', 'make', 'generate', 'produce', 'construct', 'assemble',
+        'compile', 'execute', 'run', 'start', 'stop', 'pause', 'resume', 'continue',
+        'begin', 'end', 'finish', 'complete', 'close', 'open', 'lock', 'unlock',
+        'bind', 'unbind', 'attach', 'detach', 'connect', 'disconnect'
+    ]
+    
+    if name_lower in tier3_primitives:
+        return 70.0  # Good primitive
+    
+    return 0.0
+
+
+def score_primitive_verb_appeal(name: str) -> float:
+    """
+    Score name for being a primitive verb (core operation) that generalizes well.
+    Based on feedback: parse.ai stands out because it's a true primitive that scales.
+    
+    Primitive verbs are foundational operations that don't box you in:
+    - parse, rank, index, query, search, find, extract, match, link, etc.
+    
+    Returns score 0-100, where 100 = perfect primitive verb.
+    """
+    score = 0.0
+    name_lower = name.lower()
+    
+    # Tier 1: Perfect primitive verbs (like parse, rank, index, query, search)
+    # These are core operations that generalize extremely well
+    tier1_primitives = [
+        'parse', 'rank', 'index', 'query', 'search', 'find', 'seek', 'fetch',
+        'extract', 'match', 'link', 'filter', 'sort', 'map', 'reduce', 'fold',
+        'scan', 'trace', 'track', 'probe', 'dig', 'mine', 'discover', 'explore',
+        'navigate', 'traverse', 'walk', 'visit', 'read', 'write', 'load', 'save',
+        'store', 'cache', 'retrieve', 'get', 'set', 'put', 'take', 'give',
+        'send', 'receive', 'push', 'pull', 'move', 'copy', 'merge', 'join',
+        'split', 'slice', 'cut', 'trim', 'clean', 'transform', 'convert', 'encode',
+        'decode', 'compress', 'expand', 'scale', 'shift', 'rotate', 'flip'
+    ]
+    
+    if name_lower in tier1_primitives:
+        return 100.0  # Perfect primitive verb - highest score
+    
+    # Tier 2: Strong primitive-like verbs (still foundational)
+    tier2_primitives = [
+        'build', 'create', 'make', 'generate', 'produce', 'construct', 'assemble',
+        'compile', 'execute', 'run', 'start', 'stop', 'pause', 'resume', 'continue',
+        'begin', 'end', 'finish', 'complete', 'close', 'open', 'lock', 'unlock',
+        'bind', 'unbind', 'attach', 'detach', 'connect', 'disconnect', 'link', 'unlink'
+    ]
+    
+    if name_lower in tier2_primitives:
+        return 85.0  # Strong primitive verb
+    
+    # Check if name contains a primitive verb
+    all_primitives = tier1_primitives + tier2_primitives
+    for primitive in all_primitives:
+        if primitive in name_lower and len(primitive) >= 4:
+            if primitive in tier1_primitives:
+                score += 40  # Contains tier 1 primitive
+            else:
+                score += 25  # Contains tier 2 primitive
+    
+    # Penalize metric/algorithm-specific names (too narrow, academic)
+    # These are Kaggle leaderboard terms, not company names
+    metric_names = [
+        'smape', 'mape', 'mae', 'mse', 'rmse', 'f1', 'fbeta', 'auc', 'roc', 'pr',
+        'ap', 'map', 'ndcg', 'mrr', 'dcg', 'idcg', 'err', 'rbp', 'iou', 'dice',
+        'bleu', 'rouge', 'meteor', 'cider', 'spice', 'bertscore', 'mover',
+        'listnet', 'ranknet', 'adrank', 'lambdamart', 'xendcg', 'pcascore',
+        'tfidf', 'bm25', 'cosine', 'jaccard', 'euclidean', 'manhattan', 'hamming',
+        'levenshtein', 'dtw', 'kl', 'js', 'wasserstein', 'bhattacharyya'
+    ]
+    
+    if name_lower in metric_names:
+        score -= 50  # Heavy penalty for metric names
+    
+    # Check if name contains metric terms (also penalize)
+    for metric in metric_names:
+        if metric in name_lower:
+            score -= 30  # Penalty for containing metric terms
+    
+    # Penalize letter-swapped variants (gimmicky)
+    # Patterns like: sscore, rscore, scorea, xscore, qscore, etc.
+    base_words = ['score', 'rank', 'index', 'query', 'search', 'parse', 'match']
+    for base in base_words:
+        if len(name_lower) > len(base):
+            # Check for single letter prefix/suffix swaps
+            if name_lower.startswith(base) and len(name_lower) == len(base) + 1:
+                # e.g., "scorea", "scorex"
+                if name_lower[-1] in 'abcdefghijklmnopqrstuvwxyz':
+                    score -= 40  # Heavy penalty for letter-swapped variants
+            elif name_lower.endswith(base) and len(name_lower) == len(base) + 1:
+                # e.g., "sscore", "xscore", "qscore"
+                if name_lower[0] in 'abcdefghijklmnopqrstuvwxyz':
+                    score -= 40  # Heavy penalty for letter-swapped variants
+    
+    # Boost short dictionary words (4-6 chars) that are clean
+    if 4 <= len(name_lower) <= 6:
+        english_score = score_english_word_like(name_lower)
+        if english_score >= 100:  # Perfect English word
+            score += 30  # Boost for short, clean dictionary words
+        elif english_score >= 80:
+            score += 15
+    
+    # Cap at 100 and return
+    return min(max(score, 0.0), 100.0)
+
+
+def is_english_word(word: str) -> bool:
+    """
+    Check if a word exists in English dictionary.
+    Uses pyenchant if available, otherwise falls back to word list check.
+    """
+    word_lower = word.lower()
+    
+    if DICT_AVAILABLE and english_dict:
+        return english_dict.check(word_lower)
+    
+    # Fallback: check against known English words
+    # This is a subset - for full accuracy, install pyenchant
+    known_english_words = {
+        # Common words
+        'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
+        'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+        # Technical words we care about
+        'parse', 'rank', 'index', 'query', 'search', 'filter', 'match', 'link',
+        'ranker', 'parser', 'matcher', 'indexer', 'searcher', 'linker',
+        'ranking', 'querying', 'indexing', 'linking', 'filtering', 'matching',
+        'extract', 'retrieve', 'fetch', 'find', 'seek', 'discover', 'explore',
+        'sort', 'merge', 'join', 'split', 'slice', 'cut', 'trim', 'clean',
+        'read', 'write', 'load', 'save', 'store', 'cache', 'get', 'set',
+        'vector', 'tensor', 'matrix', 'graph', 'field', 'kernel', 'metric',
+        'impute', 'latent', 'compute', 'transform', 'encode', 'decode'
+    }
+    
+    return word_lower in known_english_words
+
+
+def has_morphology_penalty(name: str) -> bool:
+    """
+    Check if name has morphology penalty (suffix spam).
+    Hard penalty for suffixes unless the resulting word exists in English dictionary.
+    
+    Returns True if name should be penalized (has suffix spam).
+    """
+    name_lower = name.lower()
+    
+    # Problematic suffixes that look auto-generated
+    problematic_suffixes = [
+        'ic', 'al', 'ed', 'er', 'ly', 'ive', 'ize', 'ify',
+        'ion', 'tion', 'sion', 'est', 'ast', 'sem', 'able', 'ible',
+        'ment', 'ance', 'ence'
+    ]
+    
+    # Valid English words that end in these suffixes (whitelist)
+    valid_words_with_suffixes = {
+        'filter', 'finder', 'seeker', 'ranker', 'scorer', 'matcher', 'linker',
+        'parser', 'extractor', 'retriever', 'searcher', 'indexer', 'sorter',
+        'merger', 'joiner', 'splitter', 'slicer', 'cutter', 'trimmer', 'cleaner',
+        'reader', 'writer', 'loader', 'saver', 'storer', 'fetcher', 'querier',
+        'scanner', 'walker', 'visitor', 'tracer', 'tracker', 'prober', 'digger',
+        'miner', 'discoverer', 'explorer', 'navigator', 'traverser', 'ranking',
+        'querying', 'indexing', 'loading', 'joining', 'folding', 'triming', 'linking',
+        'filtering', 'matching', 'sorting', 'merging', 'splitting', 'slicing',
+        'cutting', 'trimming', 'cleaning', 'reading', 'writing', 'loading',
+        'saving', 'storing', 'caching', 'getting', 'setting', 'putting',
+        'sending', 'receiving', 'pushing', 'pulling', 'moving', 'copying'
+    }
+    
+    # If it's a known valid word, no penalty
+    if name_lower in valid_words_with_suffixes:
+        return False
+    
+    # Check each problematic suffix
+    for suffix in problematic_suffixes:
+        if name_lower.endswith(suffix) and len(name_lower) >= 5:
+            # Extract root
+            root = name_lower[:-len(suffix)]
+            
+            # Check if the full word exists in English dictionary
+            if is_english_word(name_lower):
+                return False  # Valid English word, no penalty
+            
+            # Check if root is a common tech word (likely suffix spam)
+            common_tech_roots = [
+                'rank', 'data', 'node', 'term', 'loss', 'scan', 'fast', 'bias', 'join',
+                'stem', 'plot', 'shot', 'wide', 'test', 'fold', 'zero', 'word', 'code',
+                'byte', 'bit', 'file', 'path', 'link', 'edge', 'tree', 'list', 'map',
+                'set', 'hash', 'key', 'val', 'pair', 'item', 'elem', 'cell', 'slot',
+                'sort', 'search', 'find', 'seek', 'walk', 'visit', 'read',
+                'write', 'load', 'save', 'store', 'fetch', 'query', 'index', 'match',
+                'merge', 'split', 'slice', 'cut', 'trim', 'clean', 'adam', 'bert',
+                'trace', 'track', 'mine', 'scale', 'parse', 'sparse', 'rerank', 'cache',
+                'filter'
+            ]
+            
+            if root in common_tech_roots:
+                return True  # Suffix spam detected
+    
+    return False
+
+
 def score_name(name: str, prefs: NamePreferences) -> float:
     """
     Comprehensive scoring function evaluating names across multiple dimensions:
@@ -1020,6 +1326,15 @@ def score_name(name: str, prefs: NamePreferences) -> float:
     # English word boost
     english_score = score_english_word_like(name_lower)
     
+    # Primitive verb boost (prioritize foundational verbs like parse, rank, index)
+    primitive_score = score_primitive_verb_appeal(name_lower)
+    
+    # NEW: Primitive bonus (explicit bonus for CS/math/science primitives)
+    primitive_bonus_score = score_primitive_bonus(name_lower)
+    
+    # NEW: Morphology penalty (penalize suffix spam)
+    morphology_penalty = -50.0 if has_morphology_penalty(name_lower) else 0.0
+    
     # Weighted combination based on preferences
     total_score = 0.0
     
@@ -1028,6 +1343,9 @@ def score_name(name: str, prefs: NamePreferences) -> float:
     total_score += investor_score * 0.15  # Reduced from 0.20
     total_score += broader_score * 0.15   # Broader appeal is valuable
     total_score += english_score * 0.30    # Increased from 0.25 - English words are highly valued
+    total_score += primitive_score * 0.25   # Boost primitive verbs (parse, rank, index, etc.)
+    total_score += primitive_bonus_score * 0.30  # NEW: Additional boost for primitives (parse, impute, field, kernel)
+    total_score += morphology_penalty  # NEW: Penalty for suffix spam
     
     # Audience-specific weighting (boosted for ML/search engineers)
     if prefs.target_audience == 'technical':
