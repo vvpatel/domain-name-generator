@@ -119,6 +119,7 @@ class NamePreferences:
         self.opinionated = True  # True = narrow/specific, False = flexible/broad
         self.include_tech_concepts = True  # Include references like "Jaccard"
         self.use_funded_style = False  # Use patterns from funded AI companies
+        self.name_type = 'company'  # 'company' or 'product' - Company names want abstraction/longevity, Product names can be literal
         self.max_length = 10  # Maximum name length
         self.min_length = 4  # Minimum name length
 
@@ -203,8 +204,16 @@ def collect_preferences() -> NamePreferences:
     choice = input("   Your choice (1-2, default: 2): ").strip() or "2"
     prefs.opinionated = (choice == "1")
     
+    # Company vs Product
+    print("\n5. COMPANY vs PRODUCT NAME")
+    print("   Is this a company name or a product name?")
+    print("   [1] Company name (wants abstraction, longevity, broad appeal)")
+    print("   [2] Product name (can be more literal, specific, technical)")
+    choice = input("   Your choice (1-2, default: 1): ").strip() or "1"
+    prefs.name_type = 'company' if choice == "1" else 'product'
+    
     # Technical Concept References
-    print("\n5. TECHNICAL CONCEPT REFERENCES")
+    print("\n6. TECHNICAL CONCEPT REFERENCES")
     print("   Include names that reference technical concepts (e.g., 'Jaccard', 'Cosine')?")
     print("   [1] Yes (signals technical depth, appeals to technical audience)")
     print("   [2] No (more accessible, less intimidating)")
@@ -212,7 +221,7 @@ def collect_preferences() -> NamePreferences:
     prefs.include_tech_concepts = (choice == "1")
     
     # Length preferences
-    print("\n6. NAME LENGTH")
+    print("\n7. NAME LENGTH")
     print("   Preferred name length?")
     print("   [1] Very short (4-6 characters)")
     print("   [2] Short (4-8 characters)")
@@ -1254,19 +1263,41 @@ def is_english_word(word: str) -> bool:
     
     # Fallback: check against known English words
     # This is a subset - for full accuracy, install pyenchant
+    # Expanded list of common English words and technical terms
     known_english_words = {
         # Common words
         'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
         'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
-        # Technical words we care about
+        'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+        'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their',
+        # Action verbs (technical)
         'parse', 'rank', 'index', 'query', 'search', 'filter', 'match', 'link',
         'ranker', 'parser', 'matcher', 'indexer', 'searcher', 'linker',
         'ranking', 'querying', 'indexing', 'linking', 'filtering', 'matching',
         'extract', 'retrieve', 'fetch', 'find', 'seek', 'discover', 'explore',
         'sort', 'merge', 'join', 'split', 'slice', 'cut', 'trim', 'clean',
         'read', 'write', 'load', 'save', 'store', 'cache', 'get', 'set',
+        'think', 'know', 'plan', 'mind', 'aware', 'solve', 'decide', 'choose',
+        # Technical nouns
         'vector', 'tensor', 'matrix', 'graph', 'field', 'kernel', 'metric',
-        'impute', 'latent', 'compute', 'transform', 'encode', 'decode'
+        'impute', 'latent', 'compute', 'transform', 'encode', 'decode',
+        'node', 'edge', 'tree', 'list', 'map', 'set', 'hash', 'key', 'value',
+        'data', 'record', 'table', 'row', 'column', 'frame', 'series',
+        # Descriptive words
+        'core', 'base', 'hub', 'flow', 'wave', 'pulse', 'beam', 'ray', 'arc',
+        'edge', 'peak', 'mesh', 'grid', 'smart', 'wise', 'quick', 'fast', 'real',
+        'live', 'pure', 'true', 'clear', 'bright', 'sharp', 'deep', 'wide', 'vast',
+        'exact', 'precise', 'rapid', 'instant', 'swift', 'fresh', 'new', 'next',
+        # Common adjectives
+        'big', 'small', 'high', 'low', 'long', 'short', 'good', 'bad', 'best',
+        'first', 'last', 'next', 'previous', 'current', 'future', 'past',
+        # Intelligence/cognition related
+        'think', 'thought', 'mind', 'know', 'aware', 'plan', 'reason', 'logic',
+        'solve', 'decide', 'choose', 'understand', 'learn', 'remember', 'recall',
+        # Common technical terms
+        'code', 'byte', 'bit', 'file', 'path', 'name', 'type', 'class', 'method',
+        'function', 'variable', 'constant', 'string', 'number', 'integer', 'float',
+        'boolean', 'array', 'object', 'instance', 'property', 'attribute'
     }
     
     return word_lower in known_english_words
@@ -1426,6 +1457,22 @@ def score_name(name: str, prefs: NamePreferences) -> float:
         total_score += technical_score * 0.05
     else:
         total_score += broader_score * 0.05
+    
+    # Company vs Product distinction
+    # Company names: favor abstraction, longevity, broader appeal, less literal
+    # Product names: can be more literal, specific, technical
+    if prefs.name_type == 'company':
+        # Boost abstraction, broader appeal, investor appeal (longevity)
+        total_score += broader_score * 0.10
+        total_score += investor_score * 0.10
+        # Reduce literal/technical specificity (company names should be flexible)
+        total_score -= technical_score * 0.05
+    else:  # product
+        # Product names can be more literal and specific
+        total_score += technical_score * 0.10
+        total_score += engineer_score * 0.05
+        # Less emphasis on broad appeal (products can be specific)
+        total_score -= broader_score * 0.05
     
     # Basic quality checks
     # Length preference - BOOST SHORT ENGLISH WORDS (4-6 chars like Pascal, Seek, Index)
