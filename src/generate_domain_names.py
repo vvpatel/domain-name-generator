@@ -516,6 +516,9 @@ def run_whois(domain: str, timeout: int = 7, retries: int = 1) -> Tuple[bool, st
             output = result.stdout.lower()
             error_output = result.stderr.lower()
             
+            # Extract domain name (without TLD) for more specific matching
+            domain_name_only = domain.split('.')[0].lower()
+            
             # Check for common "not found" or "available" indicators
             not_found_patterns = [
                 r'no match',
@@ -528,27 +531,55 @@ def run_whois(domain: str, timeout: int = 7, retries: int = 1) -> Tuple[bool, st
                 r'query status:\s*noobjectfound',
             ]
             
-            # Check for "registered" indicators
-            registered_patterns = [
-                r'status:\s*active',
-                r'status:\s*registered',
-                r'domain status:\s*clienttransferprohibited',
-                r'domain status:\s*clienthold',
-                r'registrar:',
-                r'creation date:',
-                r'created:',
-                r'registered on:',
+            # STRONG indicators that domain is registered (domain-specific, not TLD info)
+            # These must appear in context of the actual domain name
+            strong_registered_patterns = [
+                rf'domain name:\s*{re.escape(domain_name_only)}',  # "Domain Name: disco" for disco.ai
+                rf'registry domain id:.*{re.escape(domain_name_only)}',  # Registry ID for this domain
+                rf'registrar:.*{re.escape(domain_name_only)}',  # Registrar info for this domain
             ]
             
-            # Check output for availability indicators
+            # Check for "registered" indicators (domain-specific patterns)
+            # These patterns indicate a domain is registered/taken, but only if
+            # they appear after or in context of the domain name
+            registered_patterns = [
+                r'domain status:\s*clienttransferprohibited',
+                r'domain status:\s*clienthold',
+                r'domain status:\s*ok',  # .ai domains
+                r'registrar whois server:',  # .ai domains (appears for registered domains)
+                r'registry domain id:',  # .ai domains (appears for registered domains)
+                r'registry expiry date:',  # .ai domains (appears for registered domains)
+                r'registrant name:',  # .ai domains (appears for registered domains)
+                r'registrant organization:',  # .ai domains (appears for registered domains)
+            ]
+            
+            # Check for STRONG registered indicators FIRST (most reliable)
+            # These are domain-specific and won't match TLD information
+            for pattern in strong_registered_patterns:
+                if re.search(pattern, output):
+                    return False, "Registered"
+            
+            # Check if "Domain Name: <domain>" appears (definitive registered indicator)
+            # This appears for registered domains but not for available ones
+            domain_name_pattern = rf'domain name:\s*{re.escape(domain_name_only)}\.'
+            if re.search(domain_name_pattern, output):
+                return False, "Registered"
+            
+            # Check for other registered indicators (but be more careful)
+            # Look for patterns that appear AFTER the domain name or in domain-specific context
+            # We'll check if registrar/registry info appears, which indicates registration
+            if re.search(r'registrar whois server:', output) or re.search(r'registry domain id:', output):
+                # These only appear for registered domains, not TLD info
+                return False, "Registered"
+            
+            # Check for registrant info (only appears for registered domains)
+            if re.search(r'registrant (name|organization):', output):
+                return False, "Registered"
+            
+            # Check output for availability indicators (only if not registered)
             for pattern in not_found_patterns:
                 if re.search(pattern, output):
                     return True, "Available (not found in whois)"
-            
-            # Check for registered indicators
-            for pattern in registered_patterns:
-                if re.search(pattern, output):
-                    return False, "Registered"
             
             # If output is very short or contains specific error messages, might be available
             if len(output.strip()) < 100:
