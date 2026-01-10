@@ -58,6 +58,7 @@ THEME_WORDS = {
         'version', 'reproduce', 'baseline', 'benchmark', 'evaluate', 'compare',
         # Abbreviations and acronyms
         'api', 'sdk', 'ide', 'cli', 'gui', 'os', 'cpu', 'gpu', 'ram', 'rom', 'ssd', 'hdd',
+        'cog',  # cognitive computing
         'http', 'https', 'tcp', 'udp', 'ip', 'dns', 'cdn', 'sso', 'oauth', 'jwt', 'json',
         'xml', 'html', 'css', 'js', 'ts', 'sql', 'nosql', 'db', 'orm', 'mvc', 'mvp', 'mvvm',
         'rest', 'graphql', 'rpc', 'grpc', 'soap', 'ws', 'wss', 'ftp', 'sftp', 'ssh',
@@ -118,6 +119,8 @@ THEME_WORDS = {
         'svm', 'knn', 'kmeans', 'pca', 'rnn', 'cnn', 'lstm', 'transformer', 'bert',
         # ML properties
         'intelligent', 'adaptive', 'learned', 'trained', 'optimized', 'tuned',
+        # Intelligence/cognition terms
+        'think', 'mind', 'know', 'aware', 'plan',
         # Training ML terms
         'training', 'validate', 'test', 'split', 'fold', 'cross', 'validation',
         'overfit', 'underfit', 'regularize', 'dropout', 'early', 'stop',
